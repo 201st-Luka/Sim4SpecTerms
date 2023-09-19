@@ -1,0 +1,39 @@
+.table {
+    border-collapse: collapse;
+}
+
+.table th {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.table tr {
+    border-bottom: 1px solid #ddd;
+}
+
+.table tr:last-child {
+    border-bottom: none;
+}
+
+.possibility-table-container {
+    max-height: 310px;
+    overflow-y: auto;
+}
+
+.possibility-table {
+    composes: table;
+}
+
+.possibility-table td {
+    height: 20px;
+    width: 20px;
+}
+
+.possibility-table td:first-child {
+    width: 40px;
+}

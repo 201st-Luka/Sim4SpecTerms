@@ -1,54 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
+<body>
+<h1>Simulator for spectroscopic terms</h1>
+<h2>Orbitals</h2>
+<form action = "/" method = "get">
+    <table class="table">
+        <tr>
+            <td>S:</td>
+            <td><label>
+                <input type="number" name=s min=0 max=2 value={{ s }} />
+            </label></td>
+        </tr>
+        <tr>
+            <td>P:</td>
+            <td><label>
+                <input type="number" name="p" min=0 max=6 value={{ p }} />
+            </label></td>
+        </tr>
+        <tr>
+            <td>D:</td>
+            <td><label>
+                <input type="number" name="d" min=0 max=10 value={{ d }} />
+            </label></td>
+        </tr>
+        <tr>
+            <td>F:</td>
+            <td><label>
+                <input type="number" name="f" min=0 max=14 value={{ f }} />
+            </label></td>
+        </tr>
+    </table>
+    <p><input type="submit" value="Start the simulator" ></p>
+</form>
+<h2>Combinations</h2>
+<table class="table">
+    <tr>
+        <td>S:</td>
+        <td>{{ combinations[0] }}</td>
+    </tr>
+    <tr>
+        <td>P:</td>
+        <td>{{ combinations[1] }}</td>
+    </tr>
+    <tr>
+        <td>D:</td>
+        <td>{{ combinations[2] }}</td>
+    </tr>
+    <tr>
+        <td>F:</td>
+        <td>{{ combinations[3] }}</td>
+    </tr>
+    <tr>
+        <td>Total combinations</td>
+        <td>{{ combinations[0] * combinations[1] * combinations[2] * combinations[3] }}</td>
+    </tr>
+</table>
+<h2>Possibilities</h2>
+<p>S</p>
+<div class="possibility-table-container">
+    <table class="possibility-table">
+        <tr>
+            <td>#</td>
+            <td>0</td>
+        </tr>
+        {% for possibility_row in possibilities[0] %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                {% for possibility in possibility_row %}
+                    <td>{{ possibility | safe }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+<p>P</p>
+<div class="possibility-table-container">
+    <table class="possibility-table">
+        <tr>
+            <td>#</td>
+            <td>-1</td>
+            <td>0</td>
+            <td>1</td>
+        </tr>
+        {% for possibility_row in possibilities[1] %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                {% for possibility in possibility_row %}
+                    <td>{{ possibility | safe }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+<p>D</p>
+<div class="possibility-table-container">
+    <table class="possibility-table">
+        <tr>
+            <td>#</td>
+            <td>-2</td>
+            <td>-1</td>
+            <td>0</td>
+            <td>1</td>
+            <td>2</td>
+        </tr>
+        {% for possibility_row in possibilities[2] %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                {% for possibility in possibility_row %}
+                    <td>{{ possibility | safe }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+<p>F</p>
+<div class="possibility-table-container">
+    <table class="possibility-table">
+        <tr>
+            <td>#</td>
+            <td>-3</td>
+            <td>-2</td>
+            <td>-1</td>
+            <td>0</td>
+            <td>1</td>
+            <td>2</td>
+            <td>3</td>
+        </tr>
+        {% for possibility_row in possibilities[3] %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                {% for possibility in possibility_row %}
+                    <td>{{ possibility | safe }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+</body>
 <head>
     <meta charset="UTF-8">
     <title>Sim4SpecTerms</title>
+    <link rel="stylesheet" type="text/css" href="/static/styles.css">
 </head>
-<body>
-    <h1>Orbitals</h1>
-        <form action = "/" method = "get">
-            <table>
-                <tr>
-                    <td>S:</td>
-                    <td><input type="number" name=s min=0 max=2 value={{ s }} /></td>
-                </tr>
-                <tr>
-                    <td>P:</td>
-                    <td><input type="number" name="p" min=0 max=6 value={{ p }} /></td>
-                </tr>
-                <tr>
-                    <td>D:</td>
-                    <td><input type="number" name="d" min=0 max=10 value={{ d }} /></td>
-                </tr>
-                <tr>
-                    <td>F:</td>
-                    <td><input type="number" name="f" min=0 max=14 value={{ f }} /></td>
-                </tr>
-            </table>
-            <p><input type="submit" value="Start the simulator" ></p>
-        </form>
-    <h1>Combinations</h1>
-        <table>
-            <tr>
-                <td>S:</td>
-                <td>{{ combinations[0] }}</td>
-            </tr>
-            <tr>
-                <td>P:</td>
-                <td>{{ combinations[1] }}</td>
-            </tr>
-            <tr>
-                <td>D:</td>
-                <td>{{ combinations[2] }}</td>
-            </tr>
-            <tr>
-                <td>F:</td>
-                <td>{{ combinations[3] }}</td>
-            </tr>
-            <tr>
-                <td>Total combinations</td>
-                <td>{{ total_combinations }}</td>
-            </tr>
-        </table>
-</body>
 </html>

@@ -31,10 +31,20 @@ def index():
                     simulator.combinations(p, 6),
                     simulator.combinations(d, 10),
                     simulator.combinations(f, 14))
-    return render_template("index.html",
-                           s=s, p=p, d=d, f=f,
-                           combinations=combinations,
-                           total_combinations=combinations[0] * combinations[1] * combinations[2] * combinations[3])
+    possibilities = (simulator.possibilities(combinations[0], s, 2),
+                     simulator.possibilities(combinations[1], p, 6),
+                     simulator.possibilities(combinations[2], d, 10),
+                     simulator.possibilities(combinations[3], f, 14))
+
+    return render_template(
+        "index.html",
+        s=s, p=p, d=d, f=f,
+        combinations=combinations,
+        possibilities=(simulator.tf_poss(possibilities[0], 2),
+                       simulator.tf_poss(possibilities[1], 6),
+                       simulator.tf_poss(possibilities[2], 10),
+                       simulator.tf_poss(possibilities[3], 14))
+    )
 
 
 if __name__ == '__main__':
