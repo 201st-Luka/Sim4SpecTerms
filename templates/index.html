@@ -6,23 +6,23 @@
 </head>
 <body>
     <h1>Orbitals</h1>
-        <form action = "/" method = "post">
+        <form action = "/" method = "get">
             <table>
                 <tr>
                     <td>S:</td>
-                    <td><input type="number" name=s min=0 max=2 value=0 /></td>
+                    <td><input type="number" name=s min=0 max=2 value={{ s }} /></td>
                 </tr>
                 <tr>
                     <td>P:</td>
-                    <td><input type="number" name="p" min=0 max=6 value=0 /></td>
+                    <td><input type="number" name="p" min=0 max=6 value={{ p }} /></td>
                 </tr>
                 <tr>
                     <td>D:</td>
-                    <td><input type="number" name="d" min=0 max=10 value=0 /></td>
+                    <td><input type="number" name="d" min=0 max=10 value={{ d }} /></td>
                 </tr>
                 <tr>
                     <td>F:</td>
-                    <td><input type="number" name="f" min=0 max=14 value=0 /></td>
+                    <td><input type="number" name="f" min=0 max=14 value={{ f }} /></td>
                 </tr>
             </table>
             <p><input type="submit" value="Start the simulator" ></p>
@@ -31,19 +31,23 @@
         <table>
             <tr>
                 <td>S:</td>
-                <td>0</td>
+                <td>{{ combinations[0] }}</td>
             </tr>
             <tr>
                 <td>P:</td>
-                <td>0</td>
+                <td>{{ combinations[1] }}</td>
             </tr>
             <tr>
                 <td>D:</td>
-                <td>0</td>
+                <td>{{ combinations[2] }}</td>
             </tr>
             <tr>
                 <td>F:</td>
-                <td>0</td>
+                <td>{{ combinations[3] }}</td>
+            </tr>
+            <tr>
+                <td>Total combinations</td>
+                <td>{{ total_combinations }}</td>
             </tr>
         </table>
 </body>
