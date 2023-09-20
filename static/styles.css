@@ -25,15 +25,36 @@
     overflow-y: auto;
 }
 
+.possibility-table tr:first-child {
+    height: 25px;
+}
+
 .possibility-table {
-    composes: table;
+    border-collapse: collapse;
+}
+
+.possibility-table th {
+    border: 1px solid #ddd;
+    padding: 8px;
 }
 
 .possibility-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
     height: 20px;
     width: 20px;
+    text-align: center;
 }
 
 .possibility-table td:first-child {
-    width: 40px;
+    text-align: right;
+    width: 50px;
+}
+
+.possibility-table tr {
+    border-bottom: 1px solid #ddd;
+}
+
+.possibility-table tr:last-child {
+    border-bottom: none;
 }
