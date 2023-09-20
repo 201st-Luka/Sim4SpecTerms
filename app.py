@@ -35,7 +35,7 @@ def index():
                      simulator.possibilities(combinations[1], p, 6),
                      simulator.possibilities(combinations[2], d, 10),
                      simulator.possibilities(combinations[3], f, 14))
-
+    simulator.econfig((1, 1, 1, 1), (1, 1, 1, 1))
     return render_template(
         "index.html",
         s=s, p=p, d=d, f=f,
