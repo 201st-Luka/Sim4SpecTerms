@@ -1,5 +1,8 @@
+#ifndef __COMBINATIONS__
+#define __COMBINATIONS__
+
+
 #include <python3.11/Python.h>
-#include <python3.11/longobject.h>
 #include <stdlib.h>
 
 
@@ -14,6 +17,7 @@ static unsigned long int factorial (unsigned int n) {
 static unsigned int combination(unsigned int n, unsigned int max_electrons) {
     return (factorial(max_electrons) / (factorial(n) * factorial(max_electrons - n)));
 }
+
 
 typedef struct {
     PyObject_HEAD
@@ -83,3 +87,6 @@ PyTypeObject CombinationsType = {
     .tp_init = (initproc) Combinations_Init,
     .tp_getset = Combinations_getset,
 };
+
+
+#endif // __COMBINATIONS__
