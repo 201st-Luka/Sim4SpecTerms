@@ -63,7 +63,7 @@
             <td>#</td>
             <td>0</td>
         </tr>
-        {% for possibility_row in possibilities[0] %}
+        {% for possibility_row in possibilities.s %}
             <tr>
                 <td>{{ loop.index }}</td>
                 {% for possibility in possibility_row %}
@@ -82,7 +82,7 @@
             <td>0</td>
             <td>1</td>
         </tr>
-        {% for possibility_row in possibilities[1] %}
+        {% for possibility_row in possibilities.p %}
             <tr>
                 <td>{{ loop.index }}</td>
                 {% for possibility in possibility_row %}
@@ -103,7 +103,7 @@
             <td>1</td>
             <td>2</td>
         </tr>
-        {% for possibility_row in possibilities[2] %}
+        {% for possibility_row in possibilities.d %}
             <tr>
                 <td>{{ loop.index }}</td>
                 {% for possibility in possibility_row %}
@@ -126,7 +126,7 @@
             <td>2</td>
             <td>3</td>
         </tr>
-        {% for possibility_row in possibilities[3] %}
+        {% for possibility_row in possibilities.f %}
             <tr>
                 <td>{{ loop.index }}</td>
                 {% for possibility in possibility_row %}

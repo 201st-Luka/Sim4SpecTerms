@@ -25,14 +25,14 @@ typedef struct {
 } Combinations;
 
 static PyObject* Combinations_New(PyTypeObject* type, PyObject* args, PyObject* kwargs) {
-    Combinations* self = (Combinations*)type->tp_alloc(type, 0);
+    Combinations* self = (Combinations*) type->tp_alloc(type, 0);
     if (self != NULL) {
         self->s = 0;
         self->p = 0;
         self->d = 0;
         self->f = 0;
     }
-    return (PyObject*)self;
+    return (PyObject*) self;
 }
 
 static int Combinations_Init(Combinations *self, PyObject *args, PyObject *kwargs) {
@@ -48,7 +48,9 @@ static int Combinations_Init(Combinations *self, PyObject *args, PyObject *kwarg
 }
 
 static void Combinations_Dealloc(Combinations *self) {
+    printf("COMBINATIONS DEALLOC start\n");
     Py_TYPE(self)->tp_free((PyObject*) self);
+    printf("COMBINATIONS DEALLOC ok\n");
 }
 
 static PyObject *Combinations_GetS(Combinations *self, void *closure) {

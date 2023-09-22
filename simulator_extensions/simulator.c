@@ -3,6 +3,7 @@
 
 
 #include <python3.11/Python.h>
+#include <python3.11/object.h>
 #include <python3.11/tupleobject.h>
 #include <stdlib.h>
 
@@ -11,24 +12,37 @@
 
 
 typedef struct {
+    unsigned int orbitals;
+    short ml;
+    float ms;
+    unsigned int group;
+} SimulatorRow;
+
+
+typedef struct {
     PyObject_HEAD
     unsigned int s, p, d, f;
     Combinations *combinations;
     Possibilities *possibilities;
+    SimulatorRow *rows;
 } Simulator;
 
 static PyObject* Simulator_New(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     Simulator *self = (Simulator*) type->tp_alloc(type, 0);
     if (self != NULL) {        
-        self->combinations = (Combinations*) CombinationsType.tp_new(&CombinationsType, args, kwargs);
-        if (self->combinations != NULL) {
+        if ((self->combinations = (Combinations*) CombinationsType.tp_new(&CombinationsType, args, kwargs)) == NULL) {
+            Py_DECREF(self);
+            Py_TYPE(self)->tp_free((PyObject*) self);
+            self = NULL;
+        } else if ((self->possibilities = (Possibilities*) PossibilitiesType.tp_new(&PossibilityType, args, kwargs)) == NULL) {
+            Py_DECREF(self);
+            Py_TYPE(self)->tp_free((PyObject*) self);
+            self = NULL;
+        } else {
             self->s = 0;
             self->p = 0;
             self->d = 0;
             self->f = 0;
-        } else {
-            Py_TYPE(self)->tp_free((PyObject*) self);
-            self = NULL;
         }
     }
     return (PyObject*) self;
@@ -37,21 +51,26 @@ static PyObject* Simulator_New(PyTypeObject *type, PyObject *args, PyObject *kwa
 static int Simulator_Init(Simulator *self, PyObject *args, PyObject *kwargs) {
     PyArg_ParseTuple(args, "iiii", &self->s, &self->p, &self->d, &self->f);
     
-    PyObject *t_args = PyTuple_New(4), *t_kwargs = PyTuple_New(0);
-    
-    PyTuple_SET_ITEM(t_args, 0, PyLong_FromSize_t(self->s));
-    PyTuple_SET_ITEM(t_args, 1, PyLong_FromSize_t(self->p));
-    PyTuple_SET_ITEM(t_args, 2, PyLong_FromSize_t(self->d));
-    PyTuple_SET_ITEM(t_args, 3, PyLong_FromSize_t(self->f));
-    
     CombinationsType.tp_init((PyObject*) self->combinations, args, kwargs);
+    PyObject *args_tuple = PyTuple_New(2);
+    PyTuple_SET_ITEM(args_tuple, 0, args);
+    PyTuple_SET_ITEM(args_tuple, 1, (PyObject*) self->combinations);
+    PossibilitiesType.tp_init((PyObject*) self->possibilities, args_tuple, kwargs);
 
     return 0;
 }
 
 static void Simulator_Dealloc(Simulator *self) {
-    Py_XDECREF(self->combinations);
+    printf("SIMULATOR DEALLOC start\n");
+    if (self->combinations != NULL) {
+        Py_XDECREF(self->combinations);
+    }
+    if (self->possibilities != NULL) {
+    printf("SIMULATOR DEALLOC here\n");
+        Py_XDECREF(self->possibilities);
+    }
     Py_TYPE(self)->tp_free((PyObject*) self);
+    printf("SIMULATOR DEALLOC ok\n");
 }
 
 static PyObject *Simulator_GetCombinations(Simulator *self, void *closure) {
@@ -59,8 +78,14 @@ static PyObject *Simulator_GetCombinations(Simulator *self, void *closure) {
     return (PyObject*) self->combinations;
 }
 
+static PyObject  *Simulator_GetPossibilities(Simulator* self, void *closure) {
+    Py_INCREF(self->possibilities);
+    return (PyObject*) self->possibilities;
+}
+
 static PyGetSetDef Simulator_getset[] = {
     {"combinations", (getter) Simulator_GetCombinations, NULL, "combinations of the orbirals", NULL},
+    {"possibilities", (getter) Simulator_GetPossibilities, NULL, "possibilities of the orbirals", NULL},
     {NULL}
 };
 

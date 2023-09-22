@@ -2,11 +2,16 @@
 #define __POSSIBILITY__
 
 
-#include <cstdlib>
 #include <python3.11/Python.h>
 #include <assert.h>
 #include <python3.11/object.h>
 #include <stdlib.h>
+#include <stdio.h>
+
+
+#define ARROW_UP   "&#x21bf"
+#define ARROW_DOWN "&#x21c2"
+#define ARROW_BOTH "&#x296e"
 
 
 static void permute(unsigned short *result,
@@ -33,34 +38,47 @@ static void generate_permutation(unsigned int ones, unsigned int length, unsigne
 
 
 typedef struct {
+    PyObject_HEAD
     unsigned int combinations, electrons, max_electrons, iter;
     unsigned short *poss;
 } Possibility;
 
 static PyObject *Possibility_New(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
-  
     Possibility *self = (Possibility*) type->tp_alloc(type, 0);
-    if (self != NULL) {
-        PyArg_ParseTuple(args, "iii", &self->electrons, &self->max_electrons, &self->combinations);
-        self->poss = (unsigned short*) malloc(sizeof(unsigned short) * self->combinations);
-    }
     return (PyObject*) self;
 }
 
 static int Possibility_Init(Possibility *self, PyObject *args, PyObject *kwargs) {
+    if (!PyArg_ParseTuple(args, "iii", &self->electrons, &self->max_electrons, &self->combinations)) {
+        PyErr_SetString(PyExc_ValueError, "Invalid argument format");
+        Py_DECREF(self);
+        return 1;
+    }
+
+    self->poss = (unsigned short*) malloc(sizeof(unsigned short) * self->combinations);
+    if (self->poss == NULL) {
+        PyErr_NoMemory();
+        Py_XDECREF((PyObject*) self);
+        return 1;
+    }
+
     generate_permutation(self->electrons, self->max_electrons, self->poss);
-    
     return 0;
 }
 
 static void Possibility_Dealloc(Possibility *self) {
-  free(self->poss);
-  Py_TYPE(self)->tp_free((PyObject*) self);
+    printf("POSSIBILITY DEALLOC start\n");
+    free(self->poss);
+    printf("POSSIBILITY DEALLOC here\n");
+    Py_TYPE(self)->tp_free((PyObject*) self);
+    printf("POSSIBILITY DEALLOC ok\n");
 }
 
 static PyObject *Possibility_Iter(Possibility *self) {
     self->iter = 0;
     
+    Py_INCREF(self);
+
     return (PyObject*) self;
 }
 
@@ -69,12 +87,14 @@ static PyObject *int_to_arrow(unsigned short sub_value) {
     case 0:
         return Py_BuildValue("s", "");
     case 1:
-        return Py_BuildValue("s", "&#x21c2");
+        return Py_BuildValue("s", ARROW_DOWN);
     case 2:
-        return Py_BuildValue("s", "&#x21bf");
+        return Py_BuildValue("s", ARROW_UP);
     case 3:
-        return Py_BuildValue("s", "&#x296e");
+        return Py_BuildValue("s", ARROW_BOTH);
     }
+
+    return NULL;
 }
 
 static PyObject *int_to_arrow_tuple(unsigned short value, unsigned int len) {
@@ -83,30 +103,35 @@ static PyObject *int_to_arrow_tuple(unsigned short value, unsigned int len) {
         PyTuple_SET_ITEM(tuple, len - i, int_to_arrow(value % 4));
         value /= 4;
     }
-}
 
-static PyObject *Possibility_IterNext(Possibility *iter) {
-    PyObject *tuple = int_to_arrow_tuple(iter->poss[iter->iter++], iter->max_electrons / 2);
-    Py_INCREF(tuple);
     return tuple;
 }
 
-static PyObject *Possibility_GetItem(Possibility *self, PyObject *key) {
-    if (!PyLong_Check(key)) {
-        PyErr_SetString(PyExc_TypeError, "Index must be an integer.");
+static PyObject *Possibility_IterNext(Possibility *iter) {
+    if (iter->iter < iter->combinations) {
+        PyObject *tuple = int_to_arrow_tuple(iter->poss[iter->iter++], iter->max_electrons / 2);
+        Py_INCREF(tuple);
+        return tuple;
+    } else {
+        PyErr_SetNone(PyExc_StopIteration);
         return NULL;
     }
-    
-    unsigned int index = PyLong_AsSize_t(key);
+}
+
+static PyObject *Possibility_GetItem(Possibility *self, Py_ssize_t index) {
+    if (index >= self->combinations) {
+        PyErr_SetString(PyExc_IndexError, "Index out of bounds");
+        return NULL;
+    }
     
     PyObject *tuple = int_to_arrow_tuple(self->poss[index], self->max_electrons / 2);
     Py_INCREF(tuple);
     return tuple;
 }
 
-static PyMethodDef Possibility_methods[] = {
-    {"__getitem__", Possibility_GetItem, METH_O, "Get an item by index."},
-    {NULL}
+static PySequenceMethods Possibility_sequence_methods = {
+    .sq_length = 0,
+    .sq_item = (ssizeargfunc) Possibility_GetItem,
 };
 
 PyTypeObject PossibilityType = {
@@ -121,8 +146,8 @@ PyTypeObject PossibilityType = {
     .tp_init = (initproc) Possibility_Init,
     .tp_iter = (getiterfunc) Possibility_Iter,
     .tp_iternext = (iternextfunc) Possibility_IterNext,
+    .tp_as_sequence = &Possibility_sequence_methods,
 };
-
 
 
 #endif // __POSSIBILITY__

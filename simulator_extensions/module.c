@@ -3,6 +3,7 @@
 #include "combinations.c"
 #include "simulator.c"
 #include "possibility.c"
+#include "possibilities.c"
 
 
 static struct PyModuleDef simulatormodule = {
@@ -18,6 +19,7 @@ PyMODINIT_FUNC PyInit_simulator(void) {
             PyType_Ready(&CombinationsType) < 0
             || PyType_Ready(&SimulatorType) < 0
             || PyType_Ready(&PossibilityType) < 0
+            || PyType_Ready(&PossibilitiesType) < 0
     ) return NULL;
 
     module = PyModule_Create(&simulatormodule);
@@ -27,9 +29,11 @@ PyMODINIT_FUNC PyInit_simulator(void) {
     Py_INCREF(&CombinationsType);
     Py_INCREF(&SimulatorType);
     Py_INCREF(&PossibilityType);
+    Py_INCREF(&PossibilitiesType);
     PyModule_AddObject(module, "Combinations", (PyObject*) &CombinationsType);
     PyModule_AddObject(module, "Simulator", (PyObject*) &SimulatorType);
     PyModule_AddObject(module, "Possibility", (PyObject*) &PossibilityType);
+    PyModule_AddObject(module, "Possibilities", (PyObject*) &PossibilitiesType);
 
     return module;
 }

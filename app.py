@@ -27,20 +27,13 @@ def index():
         f = 0
     elif not isinstance(f, int):
         f = int(f)
-    sim = simulator.Simulator(s, p, d, f)
-    possibilities = (simulator.possibilities(sim.combinations.s, s, 2),
-                     simulator.possibilities(sim.combinations.p, p, 6),
-                     simulator.possibilities(sim.combinations.d, d, 10),
-                     simulator.possibilities(sim.combinations.f, f, 14))
-    simulator.econfig((1, 1, 1, 1), (1, 1, 1, 1))
+    combinations = simulator.Combinations(s, p, d, f)
+    possibilities = simulator.Possibilities((s, p, d, f), combinations)
     return render_template(
         "index.html",
         s=s, p=p, d=d, f=f,
-        combinations=sim.combinations,
-        possibilities=(simulator.tf_poss(possibilities[0], 2),
-                       simulator.tf_poss(possibilities[1], 6),
-                       simulator.tf_poss(possibilities[2], 10),
-                       simulator.tf_poss(possibilities[3], 14))
+        combinations=combinations,
+        possibilities=possibilities
     )
 
 
