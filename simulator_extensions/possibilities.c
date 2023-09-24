@@ -67,15 +67,11 @@ static int Possibilities_Init(Possibilities *self, PyObject *args, PyObject *kwa
 }
 
 static void Possibilities_Dealloc(Possibilities *self) {
-    printf("POSSIBILITIES DEALLOC start\n");
-    printf("POSSIBILITIES DEALLOC - s start\n");
     Py_XDECREF(self->s);
-    printf("POSSIBILITIES DEALLOC - s end\n");
     Py_XDECREF(self->p);
     Py_XDECREF(self->d);
     Py_XDECREF(self->f);
     Py_TYPE(self)->tp_free((PyObject*) self);
-    printf("POSSIBILITIES DEALLOC end\n");
 }
 
 static PyObject *Possibilities_GetS(Possibilities *self, void *closure) {

@@ -67,11 +67,8 @@ static int Possibility_Init(Possibility *self, PyObject *args, PyObject *kwargs)
 }
 
 static void Possibility_Dealloc(Possibility *self) {
-    printf("POSSIBILITY DEALLOC start\n");
     free(self->poss);
-    printf("POSSIBILITY DEALLOC here\n");
     Py_TYPE(self)->tp_free((PyObject*) self);
-    printf("POSSIBILITY DEALLOC ok\n");
 }
 
 static PyObject *Possibility_Iter(Possibility *self) {

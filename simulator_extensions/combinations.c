@@ -48,9 +48,7 @@ static int Combinations_Init(Combinations *self, PyObject *args, PyObject *kwarg
 }
 
 static void Combinations_Dealloc(Combinations *self) {
-    printf("COMBINATIONS DEALLOC start\n");
     Py_TYPE(self)->tp_free((PyObject*) self);
-    printf("COMBINATIONS DEALLOC ok\n");
 }
 
 static PyObject *Combinations_GetS(Combinations *self, void *closure) {

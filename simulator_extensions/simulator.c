@@ -34,7 +34,7 @@ static PyObject* Simulator_New(PyTypeObject *type, PyObject *args, PyObject *kwa
             Py_DECREF(self);
             Py_TYPE(self)->tp_free((PyObject*) self);
             self = NULL;
-        } else if ((self->possibilities = (Possibilities*) PossibilitiesType.tp_new(&PossibilityType, args, kwargs)) == NULL) {
+        } else if ((self->possibilities = (Possibilities*) PossibilitiesType.tp_new(&PossibilitiesType, args, kwargs)) == NULL) {
             Py_DECREF(self);
             Py_TYPE(self)->tp_free((PyObject*) self);
             self = NULL;
@@ -61,16 +61,13 @@ static int Simulator_Init(Simulator *self, PyObject *args, PyObject *kwargs) {
 }
 
 static void Simulator_Dealloc(Simulator *self) {
-    printf("SIMULATOR DEALLOC start\n");
     if (self->combinations != NULL) {
         Py_XDECREF(self->combinations);
     }
     if (self->possibilities != NULL) {
-    printf("SIMULATOR DEALLOC here\n");
         Py_XDECREF(self->possibilities);
     }
     Py_TYPE(self)->tp_free((PyObject*) self);
-    printf("SIMULATOR DEALLOC ok\n");
 }
 
 static PyObject *Simulator_GetCombinations(Simulator *self, void *closure) {
