@@ -5,6 +5,7 @@
 #include <python3.11/Python.h>
 #include <python3.11/longobject.h>
 #include <python3.11/object.h>
+#include <python3.11/pyerrors.h>
 #include <python3.11/tupleobject.h>
 #include <stdlib.h>
 
@@ -62,26 +63,26 @@ static void generate_rows(Simulator* self) {
             p_combs = d_combs * self->combinations->p;
 
     for (unsigned int i = 0; i < all_combs; i++) {
-      self->rows[i].orbitals = (((((self->possibilities->s->poss[i / p_combs] << P_ORBITAL)
+        self->rows[i].orbitals = (((((self->possibilities->s->poss[i / p_combs] << P_ORBITAL)
                 | self->possibilities->p->poss[(i % p_combs) / d_combs]) << D_ORBITAL)
                 | self->possibilities->d->poss[(i % d_combs) / self->combinations->f]) << F_ORBITAL)
                 | self->possibilities->f->poss[i % self->combinations->f];
-      self->rows[i].ms = (float)((self->rows[i].orbitals & (1 << 31)) >> 31) - (float)((self->rows[i].orbitals & (1 << 30)) >> 30);
-      self->rows[i].ml = 0;
-      for (int pdf = (P_ORBITAL + D_ORBITAL + F_ORBITAL) / 2 - 1; pdf >= (D_ORBITAL + F_ORBITAL) / 2; --pdf) {
-        self->rows[i].ms += (float)((self->rows[i].orbitals & (1 << (pdf * 2 + 1))) >> (pdf * 2 + 1)) - (float)((self->rows[i].orbitals & (1 << (pdf * 2))) >> (pdf * 2));
-        self->rows[i].ml += (((self->rows[i].orbitals & (1 << (pdf * 2 + 1))) >> (pdf * 2 + 1)) + ((self->rows[i].orbitals & (1 << (pdf * 2))) >> (pdf * 2))) * (-(pdf - (D_ORBITAL + F_ORBITAL) / 2) + 1);
-      }
-      for (int df = (D_ORBITAL + F_ORBITAL) / 2 - 1; df >= F_ORBITAL / 2; --df) {
-        self->rows[i].ms += (float)((self->rows[i].orbitals & (1 << (df * 2 + 1))) >> (df * 2 + 1)) - (float)((self->rows[i].orbitals & (1 << (df * 2))) >> (df * 2));
-        self->rows[i].ml += (((self->rows[i].orbitals & (1 << (df * 2 + 1))) >> (df * 2 + 1)) + ((self->rows[i].orbitals & (1 << (df * 2))) >> (df * 2))) * (-(df - F_ORBITAL / 2) + 2);
-      }
-      for (int f = F_ORBITAL / 2 - 1; f >= 0 / 2; --f) {
-        self->rows[i].ms += (float)((self->rows[i].orbitals & (1 << (f * 2 + 1))) >> (f * 2 + 1)) - (float)((self->rows[i].orbitals & (1 << (f * 2))) >> (f * 2));
-        self->rows[i].ml += (((self->rows[i].orbitals & (1 << (f * 2 + 1))) >> (f * 2 + 1)) + ((self->rows[i].orbitals & (1 << (f * 2))) >> (f * 2))) * (-f + 3);
-      }
-      self->rows[i].group = 0;
-      self->rows[i].ms /= 2;
+        self->rows[i].ms = (float)((self->rows[i].orbitals & (1 << 31)) >> 31) - (float)((self->rows[i].orbitals & (1 << 30)) >> 30);
+        self->rows[i].ml = 0;
+        for (int pdf = (P_ORBITAL + D_ORBITAL + F_ORBITAL) / 2 - 1; pdf >= (D_ORBITAL + F_ORBITAL) / 2; --pdf) {
+            self->rows[i].ms += (float)((self->rows[i].orbitals & (1 << (pdf * 2 + 1))) >> (pdf * 2 + 1)) - (float)((self->rows[i].orbitals & (1 << (pdf * 2))) >> (pdf * 2));
+            self->rows[i].ml += (((self->rows[i].orbitals & (1 << (pdf * 2 + 1))) >> (pdf * 2 + 1)) + ((self->rows[i].orbitals & (1 << (pdf * 2))) >> (pdf * 2))) * (-(pdf - (D_ORBITAL + F_ORBITAL) / 2) + 1);
+        }
+        for (int df = (D_ORBITAL + F_ORBITAL) / 2 - 1; df >= F_ORBITAL / 2; --df) {
+            self->rows[i].ms += (float)((self->rows[i].orbitals & (1 << (df * 2 + 1))) >> (df * 2 + 1)) - (float)((self->rows[i].orbitals & (1 << (df * 2))) >> (df * 2));
+            self->rows[i].ml += (((self->rows[i].orbitals & (1 << (df * 2 + 1))) >> (df * 2 + 1)) + ((self->rows[i].orbitals & (1 << (df * 2))) >> (df * 2))) * (-(df - F_ORBITAL / 2) + 2);
+        }
+        for (int f = F_ORBITAL / 2 - 1; f >= 0 / 2; --f) {
+            self->rows[i].ms += (float)((self->rows[i].orbitals & (1 << (f * 2 + 1))) >> (f * 2 + 1)) - (float)((self->rows[i].orbitals & (1 << (f * 2))) >> (f * 2));
+            self->rows[i].ml += (((self->rows[i].orbitals & (1 << (f * 2 + 1))) >> (f * 2 + 1)) + ((self->rows[i].orbitals & (1 << (f * 2))) >> (f * 2))) * (-f + 3);
+        }
+        self->rows[i].group = 0;
+        self->rows[i].ms /= 2;
     }
 }
 
@@ -170,6 +171,48 @@ static PyObject *Simulator_IterNext(Simulator *iter) {
     }
 }
 
+static PyObject *Simulator_GetItem(Simulator *self, PyObject *key) {
+    if (PyLong_Check(key)) {
+        return int_to_arrow_tuple2(
+            &self->rows[PyLong_AsSize_t(key) % self->combinations->s * self->combinations->p * self->combinations->d * self->combinations->f]
+        );
+    } else if (PySlice_Check(key)) {
+        Py_ssize_t start, stop, step, slicelength;
+
+        if (PySlice_GetIndicesEx(
+                key,
+                self->combinations->s * self->combinations->p * self->combinations->d * self->combinations->f,
+                &start,
+                &stop,
+                &step,
+                &slicelength
+        ) < 0) {
+            PyErr_SetString(PyExc_ValueError, "Invalid slice");
+            return NULL;
+        }
+
+        PyObject *result = PyList_New(slicelength);
+        if (result == NULL) {
+            PyErr_SetString(PyExc_MemoryError, "Failed to allocate memory for result");
+            return NULL;
+        }
+        
+        for (unsigned int i = start; i < stop; i += step) {
+            PyList_SET_ITEM(result, i / step, int_to_arrow_tuple2(&self->rows[i]));
+        }
+
+        return result;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Key must be int or slice");
+        return NULL;
+    }
+}
+
+static PyMappingMethods Simulator_sequence_methods = {
+    .mp_length = 0,
+    .mp_subscript = (binaryfunc) Simulator_GetItem,
+};
+
 PyTypeObject SimulatorType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "simulator.Simulator",
@@ -183,6 +226,7 @@ PyTypeObject SimulatorType = {
     .tp_iter = (getiterfunc) Simulator_Iter,
     .tp_iternext = (iternextfunc) Simulator_IterNext,
     .tp_getset = Simulator_getset,
+    .tp_as_mapping = &Simulator_sequence_methods,
 };
 
 

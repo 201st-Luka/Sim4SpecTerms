@@ -1,197 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+<header>
+    <nav>Sim4SpecTerms</nav>
+    <nav>
+        S: <input class="sim-input" type="number" value=0 min=0 max=2 id="sim-input-s">
+        P: <input class="sim-input" type="number" value=0 min=0 max=6 id="sim-input-p">
+        D: <input class="sim-input" type="number" value=0 min=0 max=10 id="sim-input-d">
+        F: <input class="sim-input" type="number" value=0 min=0 max=14 id="sim-input-f">
+        <button class="sim-input-button" id="sim-input-simulate">Simulate</button>
+    </nav>
+</header>
 <body>
-<h1>Simulator for spectroscopic terms</h1>
-<h2>Orbitals</h2>
-<form action = "/" method = "get">
-    <table class="table">
-        <tr>
-            <td>S:</td>
-            <td><label>
-                <input type="number" name=s min=0 max=2 value={{ s }} />
-            </label></td>
-        </tr>
-        <tr>
-            <td>P:</td>
-            <td><label>
-                <input type="number" name="p" min=0 max=6 value={{ p }} />
-            </label></td>
-        </tr>
-        <tr>
-            <td>D:</td>
-            <td><label>
-                <input type="number" name="d" min=0 max=10 value={{ d }} />
-            </label></td>
-        </tr>
-        <tr>
-            <td>F:</td>
-            <td><label>
-                <input type="number" name="f" min=0 max=14 value={{ f }} />
-            </label></td>
-        </tr>
-    </table>
-    <input type="hidden" name="slice" value=0>
-    <p><input type="submit" value="Start the simulator" ></p>
-</form>
-<h2>Combinations</h2>
-<table class="table">
-    <tr>
-        <td>S:</td>
-        <td>{{ sim.combinations.s }}</td>
-    </tr>
-    <tr>
-        <td>P:</td>
-        <td>{{ sim.combinations.p }}</td>
-    </tr>
-    <tr>
-        <td>D:</td>
-        <td>{{ sim.combinations.d }}</td>
-    </tr>
-    <tr>
-        <td>F:</td>
-        <td>{{ sim.combinations.f }}</td>
-    </tr>
-    <tr>
-        <td>Total combinations</td>
-        <td>{{ sim.combinations.s * sim.combinations.p * sim.combinations.d * sim.combinations.f }}</td>
-    </tr>
-</table>
-<h2>Possibilities</h2>
-<p>S</p>
-<div class="possibility-table-container">
-    <table class="possibility-table">
-        <tr>
-            <td>#</td>
-            <td>0</td>
-        </tr>
-        {% for possibility_row in sim.possibilities.s %}
-            <tr>
-                <td>{{ loop.index }}</td>
-                {% for possibility in possibility_row %}
-                    <td>{{ possibility | safe }}</td>
-                {% endfor %}
-            </tr>
-        {% endfor %}
-    </table>
-</div>
-<p>P</p>
-<div class="possibility-table-container">
-    <table class="possibility-table">
-        <tr>
-            <td>#</td>
-            <td>-1</td>
-            <td>0</td>
-            <td>1</td>
-        </tr>
-        {% for possibility_row in sim.possibilities.p %}
-            <tr>
-                <td>{{ loop.index }}</td>
-                {% for possibility in possibility_row %}
-                    <td>{{ possibility | safe }}</td>
-                {% endfor %}
-            </tr>
-        {% endfor %}
-    </table>
-</div>
-<p>D</p>
-<div class="possibility-table-container">
-    <table class="possibility-table">
-        <tr>
-            <td>#</td>
-            <td>-2</td>
-            <td>-1</td>
-            <td>0</td>
-            <td>1</td>
-            <td>2</td>
-        </tr>
-        {% for possibility_row in sim.possibilities.d %}
-            <tr>
-                <td>{{ loop.index }}</td>
-                {% for possibility in possibility_row %}
-                    <td>{{ possibility | safe }}</td>
-                {% endfor %}
-            </tr>
-        {% endfor %}
-    </table>
-</div>
-<p>F</p>
-<div class="possibility-table-container">
-    <table class="possibility-table">
-        <tr>
-            <td>#</td>
-            <td>-3</td>
-            <td>-2</td>
-            <td>-1</td>
-            <td>0</td>
-            <td>1</td>
-            <td>2</td>
-            <td>3</td>
-        </tr>
-        {% for possibility_row in sim.possibilities.f %}
-            <tr>
-                <td>{{ loop.index }}</td>
-                {% for possibility in possibility_row %}
-                <td>{{ possibility | safe }}</td>
-                {% endfor %}
-            </tr>
-        {% endfor %}
-    </table>
-</div>
-<h2>Electron configurations</h2>
-<div class="possibility-table-container">
-    <table class="possibility-table">
-        <tr>
-            <td>#</td>
-            <td>S</td>
-            <td>P -1</td>
-            <td>P 0</td>
-            <td>P 1</td>
-            <td>D -2</td>
-            <td>D -1</td>
-            <td>D 0</td>
-            <td>D 1</td>
-            <td>D 2</td>
-            <td>F -3</td>
-            <td>F -2</td>
-            <td>F -1</td>
-            <td>F 0</td>
-            <td>F 1</td>
-            <td>F 2</td>
-            <td>F 3</td>
-            <td>MS</td>
-            <td>ML</td>
-        </tr>
-        {% for row in sim %}
-        {% if slice * 10000 < loop.index < (slice + 1) * 10000 %}   
-        <tr>
-            <td>{{ loop.index }}</td>
-            <td>{{ row[0] | safe }}</td>
-            <td>{{ row[1] | safe }}</td>
-            <td>{{ row[2] | safe }}</td>
-            <td>{{ row[3] | safe }}</td>
-            <td>{{ row[4] | safe }}</td>
-            <td>{{ row[5] | safe }}</td>
-            <td>{{ row[6] | safe }}</td>
-            <td>{{ row[7] | safe }}</td>
-            <td>{{ row[8] | safe }}</td>
-            <td>{{ row[9] | safe }}</td>
-            <td>{{ row[10] | safe }}</td>
-            <td>{{ row[11] | safe }}</td>
-            <td>{{ row[12] | safe }}</td>
-            <td>{{ row[13] | safe }}</td>
-            <td>{{ row[14] | safe }}</td>
-            <td>{{ row[15] | safe }}</td>
-            <td>{{ row[16] }}</td>
-            <td>{{ row[17] }}</td>
-        </tr>
-        {% endif %}
-        {% endfor %}
-    </table>
-</div>
+<p>hello world</p>
 </body>
 <head>
     <meta charset="UTF-8">
     <title>Sim4SpecTerms</title>
-    <link rel="stylesheet" type="text/css" href="/static/styles.css">
+    <link rel="stylesheet" type="text/css" href="../static/styles.css">
 </head>
 </html>

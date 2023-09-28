@@ -1,60 +1,52 @@
-.table {
-    border-collapse: collapse;
+body {
+    padding: 0;
+    margin: 0;
+    background-color: darkslategrey;
+    color: white;
 }
 
-.table th {
-    border: 1px solid #ddd;
-    padding: 8px;
+header {
+    background: midnightblue;
+    color: white;
+    display: block;
+    padding: 1.2%;
+    margin: 0;
+}
+header nav {
+    color: white;
+}
+header nav:first-child {
+    font-size: 60px;
+}
+header nav:last-child {
+    font-size: 30px;
 }
 
-.table td {
-    border: 1px solid #ddd;
-    padding: 8px;
+.sim-input[type="number"] {
+    font-size: 30px;
+    width: 60px;
+    background-color: darkslategrey;
+    border: 2px solid slateblue;
+    padding: 5px;
+    border-radius: 10px;
+    color: white;
+}
+.sim-input[type="number"]:hover {
+  border-color: lightskyblue;
+}
+.sim-input[type="number"]:active {
+  border-color: skyblue;
 }
 
-.table tr {
-    border-bottom: 1px solid #ddd;
+.sim-input-button {
+    font-size: 30px;
+    background-color: darkslategrey;
+    border: 2px solid slateblue;
+    padding: 5px;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
 }
-
-.table tr:last-child {
-    border-bottom: none;
-}
-
-.possibility-table-container {
-    max-height: 310px;
-    overflow-y: auto;
-}
-
-.possibility-table tr:first-child {
-    height: 25px;
-}
-
-.possibility-table {
-    border-collapse: collapse;
-}
-
-.possibility-table th {
-    border: 1px solid #ddd;
-    padding: 8px;
-}
-
-.possibility-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    height: 20px;
-    width: 20px;
-    text-align: center;
-}
-
-.possibility-table td:first-child {
-    text-align: right;
-    width: 50px;
-}
-
-.possibility-table tr {
-    border-bottom: 1px solid #ddd;
-}
-
-.possibility-table tr:last-child {
-    border-bottom: none;
+.sim-input-button:hover {
+    border-color: darkorange;
 }
