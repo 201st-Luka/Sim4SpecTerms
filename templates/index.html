@@ -30,29 +30,30 @@
             </label></td>
         </tr>
     </table>
+    <input type="hidden" name="slice" value=0>
     <p><input type="submit" value="Start the simulator" ></p>
 </form>
 <h2>Combinations</h2>
 <table class="table">
     <tr>
         <td>S:</td>
-        <td>{{ combinations.s }}</td>
+        <td>{{ sim.combinations.s }}</td>
     </tr>
     <tr>
         <td>P:</td>
-        <td>{{ combinations.p }}</td>
+        <td>{{ sim.combinations.p }}</td>
     </tr>
     <tr>
         <td>D:</td>
-        <td>{{ combinations.d }}</td>
+        <td>{{ sim.combinations.d }}</td>
     </tr>
     <tr>
         <td>F:</td>
-        <td>{{ combinations.f }}</td>
+        <td>{{ sim.combinations.f }}</td>
     </tr>
     <tr>
         <td>Total combinations</td>
-        <td>{{ combinations.s * combinations.p * combinations.d * combinations.f }}</td>
+        <td>{{ sim.combinations.s * sim.combinations.p * sim.combinations.d * sim.combinations.f }}</td>
     </tr>
 </table>
 <h2>Possibilities</h2>
@@ -63,7 +64,7 @@
             <td>#</td>
             <td>0</td>
         </tr>
-        {% for possibility_row in possibilities.s %}
+        {% for possibility_row in sim.possibilities.s %}
             <tr>
                 <td>{{ loop.index }}</td>
                 {% for possibility in possibility_row %}
@@ -82,7 +83,7 @@
             <td>0</td>
             <td>1</td>
         </tr>
-        {% for possibility_row in possibilities.p %}
+        {% for possibility_row in sim.possibilities.p %}
             <tr>
                 <td>{{ loop.index }}</td>
                 {% for possibility in possibility_row %}
@@ -103,7 +104,7 @@
             <td>1</td>
             <td>2</td>
         </tr>
-        {% for possibility_row in possibilities.d %}
+        {% for possibility_row in sim.possibilities.d %}
             <tr>
                 <td>{{ loop.index }}</td>
                 {% for possibility in possibility_row %}
@@ -126,13 +127,64 @@
             <td>2</td>
             <td>3</td>
         </tr>
-        {% for possibility_row in possibilities.f %}
+        {% for possibility_row in sim.possibilities.f %}
             <tr>
                 <td>{{ loop.index }}</td>
                 {% for possibility in possibility_row %}
                 <td>{{ possibility | safe }}</td>
                 {% endfor %}
             </tr>
+        {% endfor %}
+    </table>
+</div>
+<h2>Electron configurations</h2>
+<div class="possibility-table-container">
+    <table class="possibility-table">
+        <tr>
+            <td>#</td>
+            <td>S</td>
+            <td>P -1</td>
+            <td>P 0</td>
+            <td>P 1</td>
+            <td>D -2</td>
+            <td>D -1</td>
+            <td>D 0</td>
+            <td>D 1</td>
+            <td>D 2</td>
+            <td>F -3</td>
+            <td>F -2</td>
+            <td>F -1</td>
+            <td>F 0</td>
+            <td>F 1</td>
+            <td>F 2</td>
+            <td>F 3</td>
+            <td>MS</td>
+            <td>ML</td>
+        </tr>
+        {% for row in sim %}
+        {% if slice * 10000 < loop.index < (slice + 1) * 10000 %}   
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ row[0] | safe }}</td>
+            <td>{{ row[1] | safe }}</td>
+            <td>{{ row[2] | safe }}</td>
+            <td>{{ row[3] | safe }}</td>
+            <td>{{ row[4] | safe }}</td>
+            <td>{{ row[5] | safe }}</td>
+            <td>{{ row[6] | safe }}</td>
+            <td>{{ row[7] | safe }}</td>
+            <td>{{ row[8] | safe }}</td>
+            <td>{{ row[9] | safe }}</td>
+            <td>{{ row[10] | safe }}</td>
+            <td>{{ row[11] | safe }}</td>
+            <td>{{ row[12] | safe }}</td>
+            <td>{{ row[13] | safe }}</td>
+            <td>{{ row[14] | safe }}</td>
+            <td>{{ row[15] | safe }}</td>
+            <td>{{ row[16] }}</td>
+            <td>{{ row[17] }}</td>
+        </tr>
+        {% endif %}
         {% endfor %}
     </table>
 </div>

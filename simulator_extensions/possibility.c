@@ -79,7 +79,7 @@ static PyObject *Possibility_Iter(Possibility *self) {
     return (PyObject*) self;
 }
 
-static PyObject *int_to_arrow(unsigned short sub_value) {
+PyObject *int_to_arrow(unsigned short sub_value) {
     switch (sub_value) {
     case 0:
         return Py_BuildValue("s", "");
