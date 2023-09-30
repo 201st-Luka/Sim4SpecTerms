@@ -4,6 +4,8 @@
 #include "simulator.c"
 #include "possibility.c"
 #include "possibilities.c"
+#include "group.c"
+#include "groups.c"
 
 
 static struct PyModuleDef simulatormodule = {

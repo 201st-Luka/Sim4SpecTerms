@@ -146,7 +146,7 @@ static PyObject *Simulator_Iter(Simulator *self) {
     return (PyObject*) self;
 }
 
-static PyObject *int_to_arrow_tuple2(SimulatorRow *row) {
+static PyObject *row_to_arrow_tuple(SimulatorRow *row) {
     PyObject *tuple = PyTuple_New((TOTAL_ORBITALS / 2) + 2);
     unsigned int value = row->orbitals;
     for (unsigned short i = 1; i <= TOTAL_ORBITALS / 2; ++i) {
@@ -161,7 +161,7 @@ static PyObject *int_to_arrow_tuple2(SimulatorRow *row) {
 
 static PyObject *Simulator_IterNext(Simulator *iter) {
     if (iter->iter < iter->combinations->s * iter->combinations->p * iter->combinations->d * iter->combinations->f) {
-        PyObject *tuple = int_to_arrow_tuple2(&iter->rows[iter->iter]);
+        PyObject *tuple = row_to_arrow_tuple(&iter->rows[iter->iter]);
         Py_INCREF(tuple);
         iter->iter++;
         return tuple;
@@ -173,7 +173,7 @@ static PyObject *Simulator_IterNext(Simulator *iter) {
 
 static PyObject *Simulator_GetItem(Simulator *self, PyObject *key) {
     if (PyLong_Check(key)) {
-        return int_to_arrow_tuple2(
+        return row_to_arrow_tuple(
             &self->rows[PyLong_AsSize_t(key) % self->combinations->s * self->combinations->p * self->combinations->d * self->combinations->f]
         );
     } else if (PySlice_Check(key)) {
@@ -198,7 +198,7 @@ static PyObject *Simulator_GetItem(Simulator *self, PyObject *key) {
         }
         
         for (unsigned int i = start; i < stop; i += step) {
-            PyList_SET_ITEM(result, i / step, int_to_arrow_tuple2(&self->rows[i]));
+            PyList_SET_ITEM(result, i / step, row_to_arrow_tuple(&self->rows[i]));
         }
 
         return result;
