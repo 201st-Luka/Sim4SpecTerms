@@ -13,27 +13,18 @@ def index():
     return render_template("index.html")
 
 
-@app.route('/api/simulator')
+@app.route('/api/simulator', methods=['POST'])
 def api_simulator():
-    s, p, d, f, range_start, range_end = (int(request.args.get('s')), int(request.args.get('p')),
-                                          int(request.args.get('d')), int(request.args.get('f')),
-                                          int(request.args.get('range_start')), int(request.args.get('range_end')))
+    data = request.json.get('data')
+    s, p, d, f, range_start, range_end = (int(data['s']), int(data['p']), int(data['d']), int(data['f']),
+                                          int(data['range_start']), int(data['range_end']))
+
     sim = simulator.Simulator(s, p, d, f)
-    return jsonify(s=s, p=p, d=d, f=f, range_start=range_start, range_end=range_end, rows=sim[range_start:range_end])
-
-
-@app.route('/api/full')
-def api_full():
-    s, p, d, f, range_start, range_end = (int(request.args.get('s')), int(request.args.get('p')),
-                                          int(request.args.get('d')), int(request.args.get('f')),
-                                          int(request.args.get('range_start')), int(request.args.get('range_end')))
-    sim = simulator.Simulator(s, p, d, f)
-
-    return jsonify(
-        s=s, p=p, d=d, f=f,
-        range_start=range_start, range_end=range_end,
-        rows=sim[range_start:range_end]
-    )
+    rows = sim[range_start:range_end]
+    return jsonify(s=sim.combinations.s, p=sim.combinations.p, d=sim.combinations.d, f=sim.combinations.f,
+                   range_start=range_start, range_end=range_end,
+                   rows=sim[range_start:range_end],
+                   len=len(rows))
 
 
 if __name__ == '__main__':

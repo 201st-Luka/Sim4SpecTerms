@@ -4,18 +4,76 @@
     <meta charset="UTF-8">
     <title>Sim4SpecTerms</title>
     <link rel="stylesheet" type="text/css" href="../static/styles.css">
+    <script src="../static/js/requests/simulator.js"></script>
 </head>
-<header>
-    <nav>Sim4SpecTerms</nav>
-    <nav>
-        S: <input class="sim-input" type="number" value=0 min=0 max=2 id="sim-input-s">
-        P: <input class="sim-input" type="number" value=0 min=0 max=6 id="sim-input-p">
-        D: <input class="sim-input" type="number" value=0 min=0 max=10 id="sim-input-d">
-        F: <input class="sim-input" type="number" value=0 min=0 max=14 id="sim-input-f">
-        <button class="sim-input-button" id="sim-input-simulate">Simulate</button>
-    </nav>
+<header class="header">
+    Sim4SpecTerms
 </header>
-<body>
-<p>hello world</p>
+<nav class="topnav">
+    <form id="sim-input-form">
+            S: <input class="sim-input" type="number" value=0 min=0 max=2 id="sim-input-s">
+            P: <input class="sim-input" type="number" value=0 min=0 max=6 id="sim-input-p">
+            D: <input class="sim-input" type="number" value=0 min=0 max=10 id="sim-input-d">
+            F: <input class="sim-input" type="number" value=0 min=0 max=14 id="sim-input-f">
+            <input class="sim-input-button" type="submit" value="Simulate" id="sim-input-simulate">
+    </form>
+</nav>
+<body class="body">
+<div class="box">
+
+
+        <table>
+            <tr>
+                <td>Orbital</td>
+                <td>Combinations</td>
+            </tr>
+            <tr>
+                <td>S</td>
+                <td id="combinations-s">1</td>
+            </tr>
+            <tr>
+                <td>P</td>
+                <td id="combinations-p">1</td>
+            </tr>
+            <tr>
+                <td>D</td>
+                <td id="combinations-d">1</td>
+            </tr>
+            <tr>
+                <td>F</td>
+                <td id="combinations-f">1</td>
+            </tr>
+            <tr>
+                <td>Total</td>
+                <td id="combinations-total">1</td>
+            </tr>
+        </table>
+    </div>
+<div class="sim-box">
+        <table id="rows-table">
+            <tr>
+                <td>#</td>
+                <td>S</td>
+                <td>P -1</td>
+                <td>P 0</td>
+                <td>P 1</td>
+                <td>D -2</td>
+                <td>D -1</td>
+                <td>D 0</td>
+                <td>D 1</td>
+                <td>D 2</td>
+                <td>F -3</td>
+                <td>F -2</td>
+                <td>F -1</td>
+                <td>F 0</td>
+                <td>F 1</td>
+                <td>F 2</td>
+                <td>F 3</td>
+                <td>Ml</td>
+                <td>Ms</td>
+                <td>Group</td>
+            </tr>
+        </table>
+</div>
 </body>
 </html>

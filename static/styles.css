@@ -1,25 +1,29 @@
-body {
+.body {
     padding: 0;
     margin: 0;
-    background-color: darkslategrey;
+    background-color: black;
     color: white;
 }
 
-header {
+.header {
     background: midnightblue;
     color: white;
     display: block;
     padding: 1.2%;
     margin: 0;
 }
-header nav {
+.header nav {
     color: white;
 }
-header nav:first-child {
+.header nav:first-child {
     font-size: 60px;
 }
-header nav:last-child {
+.header nav:last-child {
     font-size: 30px;
+}
+
+.topnav {
+
 }
 
 .sim-input[type="number"] {
@@ -49,4 +53,45 @@ header nav:last-child {
 }
 .sim-input-button:hover {
     border-color: darkorange;
+}
+
+.sim-box {
+    width: fit-content;
+    background-color: darkslategrey;
+    border-color: slateblue;
+    border-width: 2px;
+    color: white;
+    font-size: 20px;
+    border-style: solid;
+    padding: 20px;
+    float: left;
+    overflow: scroll;
+    max-height: 700px;
+    border-collapse: collapse;
+}
+.sim-box table, td, th {
+    padding: 0 10px 0 10px;
+    border-collapse: collapse;
+    border: 2px solid grey;
+}
+.sim-box td {
+    min-width: 50px;
+}
+
+.box {
+    width: fit-content;
+    background-color: darkslategrey;
+    border-color: slateblue;
+    border-width: 2px;
+    border-collapse: collapse;
+    border-style: solid;
+    color: white;
+    font-size: 20px;
+    padding: 20px;
+}
+
+@media screen and (max-width: 600px) {
+  .column.side, .column.middle {
+    width: 100%;
+  }
 }

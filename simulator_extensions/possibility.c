@@ -9,9 +9,9 @@
 #include <stdio.h>
 
 
-#define ARROW_UP   "&#x21bf"
-#define ARROW_DOWN "&#x21c2"
-#define ARROW_BOTH "&#x296e"
+#define ARROW_UP   "\u21bF"
+#define ARROW_DOWN "\u21C2"
+#define ARROW_BOTH "\u296E"
 
 
 static void permute(unsigned short *result,
