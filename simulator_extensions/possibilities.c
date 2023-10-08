@@ -3,9 +3,6 @@
 
 
 #include <python3.11/Python.h>
-#include <python3.11/longobject.h>
-#include <python3.11/pyerrors.h>
-#include <python3.11/tupleobject.h>
 
 #include "possibility.c"
 #include "combinations.c"

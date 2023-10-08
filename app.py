@@ -1,11 +1,7 @@
-from os import environ
-
 from flask import Flask, render_template, request, jsonify
 import simulator
 
 app = Flask(__name__)
-
-app.debug = environ.get("DEBUG")
 
 
 @app.route('/', methods=['GET'])
@@ -20,13 +16,16 @@ def api_simulator():
                                           int(data['range_start']), int(data['range_end']))
 
     sim = simulator.Simulator(s, p, d, f)
-    rows = sim[range_start:range_end]
-    return jsonify(s=sim.combinations.s, p=sim.combinations.p, d=sim.combinations.d, f=sim.combinations.f,
-                   range_start=range_start, range_end=range_end,
-                   rows=sim[range_start:range_end],
-                   len=len(rows))
+    terms = simulator.Groups(sim)
+    return jsonify(
+        s=sim.combinations.s, p=sim.combinations.p, d=sim.combinations.d, f=sim.combinations.f,
+        range_start=range_start, range_end=range_end,
+        rows=sim[range_start:range_end],
+        rows_len=len(sim),
+        terms=list(terms),
+        terms_len=len(terms)
+    )
 
 
 if __name__ == '__main__':
-    app.debug = True
     app.run()

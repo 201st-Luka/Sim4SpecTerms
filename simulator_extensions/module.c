@@ -4,14 +4,13 @@
 #include "simulator.c"
 #include "possibility.c"
 #include "possibilities.c"
-#include "group.c"
 #include "groups.c"
 
 
 static struct PyModuleDef simulatormodule = {
     PyModuleDef_HEAD_INIT,
     .m_name = "simulator",
-    .m_doc = "C implementations of helper functions",
+    .m_doc = "C implementations of simulator functions",
     .m_size = -1,
 };
 
@@ -22,6 +21,7 @@ PyMODINIT_FUNC PyInit_simulator(void) {
             || PyType_Ready(&SimulatorType) < 0
             || PyType_Ready(&PossibilityType) < 0
             || PyType_Ready(&PossibilitiesType) < 0
+            || PyType_Ready(&GroupsType) < 0
     ) return NULL;
 
     module = PyModule_Create(&simulatormodule);
@@ -32,10 +32,13 @@ PyMODINIT_FUNC PyInit_simulator(void) {
     Py_INCREF(&SimulatorType);
     Py_INCREF(&PossibilityType);
     Py_INCREF(&PossibilitiesType);
+    Py_INCREF(&GroupsType);
     PyModule_AddObject(module, "Combinations", (PyObject*) &CombinationsType);
     PyModule_AddObject(module, "Simulator", (PyObject*) &SimulatorType);
     PyModule_AddObject(module, "Possibility", (PyObject*) &PossibilityType);
     PyModule_AddObject(module, "Possibilities", (PyObject*) &PossibilitiesType);
+    PyModule_AddObject(module, "Groups", (PyObject*) &GroupsType);
+
 
     return module;
 }

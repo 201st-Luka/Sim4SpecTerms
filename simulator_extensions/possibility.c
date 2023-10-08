@@ -3,8 +3,6 @@
 
 
 #include <python3.11/Python.h>
-#include <assert.h>
-#include <python3.11/object.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -20,7 +18,6 @@ static void permute(unsigned short *result,
                     unsigned int length,
                     unsigned int i,
                     unsigned int *result_len) {
-    assert(result != NULL && ones <= length && i <= length && result_len != NULL);
     if (ones <= 0) {
         result[*result_len] = perm << (length - i);
         (*result_len)++;
@@ -31,9 +28,8 @@ static void permute(unsigned short *result,
 }
 
 static void generate_permutation(unsigned int ones, unsigned int length, unsigned short *result) {
-  assert(result != NULL && ones <= length);
-  unsigned int result_len = 0;
-  permute(result, 0, ones, length, 0, &result_len);
+    unsigned int result_len = 0;
+    permute(result, 0, ones, length, 0, &result_len);
 }
 
 

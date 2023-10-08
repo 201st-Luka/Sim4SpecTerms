@@ -6,74 +6,102 @@
     <link rel="stylesheet" type="text/css" href="../static/styles.css">
     <script src="../static/js/requests/simulator.js"></script>
 </head>
-<header class="header">
-    Sim4SpecTerms
-</header>
-<nav class="topnav">
+<body>
+<div class="header">
+    <h1>Sim4SpecTerms</h1>
+    <a>Simulator for Spectroscopic Terms</a>
+</div>
+<div class="topnav">
     <form id="sim-input-form">
-            S: <input class="sim-input" type="number" value=0 min=0 max=2 id="sim-input-s">
-            P: <input class="sim-input" type="number" value=0 min=0 max=6 id="sim-input-p">
-            D: <input class="sim-input" type="number" value=0 min=0 max=10 id="sim-input-d">
-            F: <input class="sim-input" type="number" value=0 min=0 max=14 id="sim-input-f">
-            <input class="sim-input-button" type="submit" value="Simulate" id="sim-input-simulate">
+        s: <input class="sim-input" type="number" value=0 min=0 max=2 id="sim-input-s">
+        p: <input class="sim-input" type="number" value=0 min=0 max=6 id="sim-input-p">
+        d: <input class="sim-input" type="number" value=0 min=0 max=10 id="sim-input-d">
+        f: <input class="sim-input" type="number" value=0 min=0 max=14 id="sim-input-f">
+        <input class="button" type="submit" value="Simulate" id="sim-input-simulate" disabled="disabled">
     </form>
-</nav>
-<body class="body">
-<div class="box">
-
-
+</div>
+<div class="left-column">
+    <div class="box">
         <table>
             <tr>
                 <td>Orbital</td>
-                <td>Combinations</td>
+                <td>Possibilities</td>
             </tr>
             <tr>
-                <td>S</td>
+                <td>s</td>
                 <td id="combinations-s">1</td>
             </tr>
             <tr>
-                <td>P</td>
+                <td>p</td>
                 <td id="combinations-p">1</td>
             </tr>
             <tr>
-                <td>D</td>
+                <td>d</td>
                 <td id="combinations-d">1</td>
             </tr>
             <tr>
-                <td>F</td>
+                <td>f</td>
                 <td id="combinations-f">1</td>
             </tr>
             <tr>
-                <td>Total</td>
-                <td id="combinations-total">1</td>
+                <td class="invisible-border">Total</td>
+                <td class="invisible-border" id="combinations-total">1</td>
             </tr>
         </table>
     </div>
-<div class="sim-box">
-        <table id="rows-table">
+    <div class="box">
+        <table id="group-table">
+            <tr>
+                <td colspan=5>Groups</td>
+            </tr>
             <tr>
                 <td>#</td>
-                <td>S</td>
-                <td>P -1</td>
-                <td>P 0</td>
-                <td>P 1</td>
-                <td>D -2</td>
-                <td>D -1</td>
-                <td>D 0</td>
-                <td>D 1</td>
-                <td>D 2</td>
-                <td>F -3</td>
-                <td>F -2</td>
-                <td>F -1</td>
-                <td>F 0</td>
-                <td>F 1</td>
-                <td>F 2</td>
-                <td>F 3</td>
-                <td>Ml</td>
-                <td>Ms</td>
-                <td>Group</td>
+                <td>|m<sub>&#x2113</sub>|</td>
+                <td>|m<sub>&#x1D460</sub>|</td>
+                <td>Count</td>
+                <td>Spectroscopic term</td>
             </tr>
         </table>
+    </div>
+</div>
+<div class="right-column">
+    <div class="box">
+        <table id="rows-table">
+            <tr>
+                <td colspan=6>
+                    <button class="page-button button" id="page-button-prev">Previous page</button>
+                </td>
+                <td colspan=7 id="page-label">1</td>
+                <td colspan=6>
+                    <button class="page-button button" id="page-button-next">Next page</button>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="20">Combinations</td>
+            </tr>
+            <tr>
+                <td>#</td>
+                <td>s</td>
+                <td>p<sub>x</sub></td>
+                <td>p<sub>y</sub></td>
+                <td>p<sub>z</sub></td>
+                <td>d -2</td>
+                <td>d -1</td>
+                <td>d 0</td>
+                <td>d 1</td>
+                <td>d 2</td>
+                <td>f -3</td>
+                <td>f -2</td>
+                <td>f -1</td>
+                <td>f 0</td>
+                <td>f 1</td>
+                <td>f 2</td>
+                <td>f 3</td>
+                <td>m<sub>&#x2113</sub></td>
+                <td>m<sub>&#x1D460</sub></td>
+            </tr>
+        </table>
+    </div>
 </div>
 </body>
 </html>

@@ -3,10 +3,6 @@
 
 
 #include <python3.11/Python.h>
-#include <python3.11/longobject.h>
-#include <python3.11/object.h>
-#include <python3.11/pyerrors.h>
-#include <python3.11/tupleobject.h>
 #include <stdlib.h>
 
 #include "combinations.c"
@@ -36,7 +32,7 @@ typedef struct {
     SimulatorRow *rows;
 } Simulator;
 
-static PyObject* Simulator_New(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
+static PyObject *Simulator_New(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     Simulator *self = (Simulator*) type->tp_alloc(type, 0);
     if (self != NULL) {        
         if ((self->combinations = (Combinations*) CombinationsType.tp_new(&CombinationsType, args, kwargs)) == NULL) {
@@ -153,8 +149,8 @@ static PyObject *row_to_arrow_tuple(SimulatorRow *row) {
         PyTuple_SET_ITEM(tuple, TOTAL_ORBITALS / 2 - i, int_to_arrow(value % 4));
         value /= 4;
     }
-    PyTuple_SET_ITEM(tuple, TOTAL_ORBITALS / 2, PyFloat_FromDouble((double) row->ms));
-    PyTuple_SET_ITEM(tuple, TOTAL_ORBITALS / 2 + 1, PyLong_FromLong((long) row->ml));
+    PyTuple_SET_ITEM(tuple, TOTAL_ORBITALS / 2, PyLong_FromLong((long) row->ml));
+    PyTuple_SET_ITEM(tuple, TOTAL_ORBITALS / 2 + 1, PyFloat_FromDouble((double) row->ms));
 
     return tuple;
 }
@@ -198,9 +194,8 @@ static PyObject *Simulator_GetItem(Simulator *self, PyObject *key) {
         }
         
         for (unsigned int i = start; i < stop; i += step) {
-            PyList_SET_ITEM(result, i / step, row_to_arrow_tuple(&self->rows[i]));
+            PyList_SET_ITEM(result, (i - start) / step, row_to_arrow_tuple(&self->rows[i]));
         }
-
         return result;
     } else {
         PyErr_SetString(PyExc_TypeError, "Key must be int or slice");
@@ -208,7 +203,16 @@ static PyObject *Simulator_GetItem(Simulator *self, PyObject *key) {
     }
 }
 
-static PyMappingMethods Simulator_sequence_methods = {
+static Py_ssize_t Simulator_Len(Simulator *self) {
+    return (Py_ssize_t) (self->combinations->s * self->combinations->p * self->combinations->d * self->combinations->f);
+}
+
+
+static PySequenceMethods Simulator_sequence_methods = {
+    .sq_length = (lenfunc) Simulator_Len,
+};
+
+static PyMappingMethods Simulator_mapping_methods = {
     .mp_length = 0,
     .mp_subscript = (binaryfunc) Simulator_GetItem,
 };
@@ -226,7 +230,8 @@ PyTypeObject SimulatorType = {
     .tp_iter = (getiterfunc) Simulator_Iter,
     .tp_iternext = (iternextfunc) Simulator_IterNext,
     .tp_getset = Simulator_getset,
-    .tp_as_mapping = &Simulator_sequence_methods,
+    .tp_as_mapping = &Simulator_mapping_methods,
+    .tp_as_sequence = &Simulator_sequence_methods,
 };
 
 
