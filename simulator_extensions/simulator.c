@@ -17,6 +17,17 @@
 
 
 typedef struct {
+    short ml;
+    float ms;
+    unsigned short count;
+} CompressedSimulatorRow;
+
+typedef struct {
+    CompressedSimulatorRow *rows;
+    unsigned int rowsCount;
+} CompressedSimulator;
+
+typedef struct {
     unsigned int orbitals;
     short ml;
     float ms;
@@ -30,6 +41,7 @@ typedef struct {
     Combinations *combinations;
     Possibilities *possibilities;
     SimulatorRow *rows;
+    CompressedSimulator *compressed;
 } Simulator;
 
 static PyObject *Simulator_New(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
@@ -43,17 +55,24 @@ static PyObject *Simulator_New(PyTypeObject *type, PyObject *args, PyObject *kwa
             Py_DECREF(self);
             Py_TYPE(self)->tp_free((PyObject*) self);
             self = NULL;
+        } else if ((self->compressed = (CompressedSimulator*) malloc(sizeof(CompressedSimulator))) == NULL) {
+            Py_DECREF(self);
+            Py_TYPE(self)->tp_free((PyObject*) self);
+            self = NULL;
         } else {
             self->s = 0;
             self->p = 0;
             self->d = 0;
             self->f = 0;
+            self->compressed->rows = NULL;
+            self->compressed->rowsCount = 0;
         }
+
     }
     return (PyObject*) self;
 }
 
-static void generate_rows(Simulator* self) {
+static int generate_rows(Simulator* self) {
     unsigned int all_combs = self->combinations->s * self->combinations->p * self->combinations->d * self->combinations->f,
             d_combs = self->combinations->f * self->combinations->d,
             p_combs = d_combs * self->combinations->p;
@@ -79,7 +98,45 @@ static void generate_rows(Simulator* self) {
         }
         self->rows[i].group = 0;
         self->rows[i].ms /= 2;
+
+        if (self->compressed->rows == NULL) {
+            self->compressed->rows = (CompressedSimulatorRow*) malloc(sizeof(CompressedSimulatorRow));
+            if (self->compressed->rows == NULL) {
+                return 1;
+            } else {
+                self->compressed->rowsCount = 1;
+                self->compressed->rows[0].ms = self->rows[i].ms;
+                self->compressed->rows[0].ml = self->rows[i].ml;
+                self->compressed->rows[0].count = 1;
+            }
+
+        } else {
+            short found = 0;
+            for (unsigned int j = 0; j < self->compressed->rowsCount; ++j) {
+                if (self->compressed->rows[j].ms == self->rows[i].ms
+                        && self->compressed->rows[j].ml == self->rows[i].ml) {
+                    ++self->compressed->rows[j].count;
+                    found = 1;
+                    break;
+                }
+            }
+
+            if (!found) {
+                CompressedSimulatorRow *tmp = (CompressedSimulatorRow*)
+                        realloc(self->compressed->rows, sizeof(CompressedSimulatorRow) * ++self->compressed->rowsCount);
+                if (tmp == NULL) {
+                    return 2;
+                } else {
+                    self->compressed->rows = tmp;
+                    self->compressed->rows[self->compressed->rowsCount - 1].ms = self->rows[i].ms;
+                    self->compressed->rows[self->compressed->rowsCount - 1].ml = self->rows[i].ml;
+                    self->compressed->rows[self->compressed->rowsCount - 1].count = 1;
+                }
+            }
+        }
     }
+
+    return 0;
 }
 
 static int Simulator_Init(Simulator *self, PyObject *args, PyObject *kwargs) {
@@ -100,7 +157,11 @@ static int Simulator_Init(Simulator *self, PyObject *args, PyObject *kwargs) {
         return 1;
     }
 
-    generate_rows(self);
+    if (generate_rows(self)) {
+        Py_XDECREF(self);
+        PyErr_NoMemory();
+        return 1;
+    }
 
     return 0;
 }
@@ -114,6 +175,12 @@ static void Simulator_Dealloc(Simulator *self) {
 
     if (self->rows != NULL)
         free(self->rows);
+
+    if (self->compressed != NULL) {
+        if (self->compressed->rows != NULL)
+            free(self->compressed->rows);
+        free(self->compressed);
+    }
 
     Py_TYPE(self)->tp_free((PyObject*) self);
 }

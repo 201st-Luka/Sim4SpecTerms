@@ -47,55 +47,46 @@ static PyObject *Groups_New(PyTypeObject *type, PyObject *args, PyObject *kwargs
     return (PyObject*) self;
 }
 
-static short find_max_ml(Simulator *simulator, unsigned int combs) {
+static short find_max_ml(Simulator *simulator) {
     short max_ml = -1;
-    for (unsigned int i = 0; i < combs / 2; ++i) {
-        if (!simulator->rows[i].group) {
-            if (!simulator->rows[combs - 1 - i].group) {
-                if (simulator->rows[i].ml > simulator->rows[combs - 1 - i].ml) {
-                    if (simulator->rows[i].ml > max_ml)
-                        max_ml = simulator->rows[i].ml;
-                } else if (simulator->rows[combs - 1 - i].ml > max_ml)
-                    max_ml = simulator->rows[combs - 1 - i].ml;
-            } else if (simulator->rows[i].ml > max_ml)
-                max_ml = simulator->rows[i].ml;
-        } else if (!simulator->rows[combs - 1 - i].group && simulator->rows[combs - 1 - i].ml > max_ml)
-            max_ml = simulator->rows[combs - 1 - i].ml;
+    for (unsigned int i = 0; i < simulator->compressed->rowsCount / 2; ++i) {
+        if (simulator->compressed->rows[i].count) {
+            if (simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].count) {
+                if (simulator->compressed->rows[i].ml > simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ml) {
+                    if (simulator->compressed->rows[i].ml > max_ml)
+                        max_ml = simulator->compressed->rows[i].ml;
+                } else if (simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ml > max_ml)
+                    max_ml = simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ml;
+            } else if (simulator->compressed->rows[i].ml > max_ml)
+                max_ml = simulator->compressed->rows[i].ml;
+        } else if (simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].count
+                && simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ml > max_ml)
+            max_ml = simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ml;
     }
-
-//    for (unsigned int i = 0; i < combs; ++i) {
-//        if (!simulator->rows[i].group && simulator->rows[i].ml > max_ml)
-//            max_ml = simulator->rows[i].ml;
-//    }
 
     return max_ml;
 }
 
-static float find_max_ms_with_ml(Simulator *simulator, unsigned int combs, short abs_ml) {
+static float find_max_ms_with_ml(Simulator *simulator, short abs_ml) {
     float max_ms = -1;
 
-    for (unsigned int i = 0; i < combs / 2; ++i) {
-        if (!simulator->rows[i].group
-                && simulator->rows[i].ml == abs_ml) {
-            if (!simulator->rows[combs - 1 - i].group
-                    && simulator->rows[combs - 1 - i].ml == abs_ml) {
-                if (simulator->rows[i].ms > simulator->rows[combs - 1 - i].ms) {
-                    if (simulator->rows[i].ms > max_ms)
-                        max_ms = simulator->rows[i].ms;
-                } else if (simulator->rows[combs - 1 - i].ms > max_ms)
-                    max_ms = simulator->rows[combs - 1 - i].ms;
-            } else if (simulator->rows[i].ms > max_ms)
-                max_ms = simulator->rows[i].ms;
-        } else if(!simulator->rows[combs - 1 - i].group
-                && simulator->rows[combs - 1 - i].ml == abs_ml
-                && simulator->rows[combs - 1 - i].ms > max_ms)
-            max_ms = simulator->rows[combs - 1 - i].ms;
+    for (unsigned int i = 0; i < simulator->compressed->rowsCount / 2; ++i) {
+        if (simulator->compressed->rows[i].count
+                && simulator->compressed->rows[i].ml == abs_ml) {
+            if (simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].count
+                    && simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ml == abs_ml) {
+                if (simulator->compressed->rows[i].ms > simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ms) {
+                    if (simulator->compressed->rows[i].ms > max_ms)
+                        max_ms = simulator->compressed->rows[i].ms;
+                } else if (simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ms > max_ms)
+                    max_ms = simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ms;
+            } else if (simulator->compressed->rows[i].ms > max_ms)
+                max_ms = simulator->compressed->rows[i].ms;
+        } else if(simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].count
+                && simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ml == abs_ml
+                && simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ms > max_ms)
+            max_ms = simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ms;
     }
-
-//    for (unsigned int i = 0; i < combs; ++i) {
-//        if (!simulator->rows[i].group && simulator->rows[i].ml == abs_ml && simulator->rows[i].ms > max_ms)
-//            max_ms = simulator->rows[i].ms;
-//    }
 
     return max_ms;
 }
@@ -140,15 +131,14 @@ static Terms *create_terms(unsigned short abs_ml, float abs_ms) {
 }
 
 static int create_group(Groups *groups, Simulator *simulator, unsigned int combs) {
-    short max_ml = find_max_ml(simulator, combs);
+    short max_ml = find_max_ml(simulator);
     if (max_ml == -1)
         return 1;
 
-    float max_ms = find_max_ms_with_ml(simulator, combs, max_ml);
+    float max_ms = find_max_ms_with_ml(simulator, max_ml);
     if (max_ms == -1.0)
         return 2;
 
-    unsigned int group_id;
     if (groups->groups == NULL) {
         groups->groups = (Group*) malloc(sizeof(Group));
         groups->group_count = 1;
@@ -165,7 +155,6 @@ static int create_group(Groups *groups, Simulator *simulator, unsigned int combs
         if (groups->groups[0].terms == NULL)
             return 5;
 
-        group_id = 1;
     } else {
         short found = 0;
         for (unsigned int i = 0; i < groups->group_count && !found; ++i) {
@@ -173,7 +162,6 @@ static int create_group(Groups *groups, Simulator *simulator, unsigned int combs
                     && groups->groups[i].abs_ms == max_ms) {
                 ++groups->groups[i].count;
                 found = 1;
-                group_id = i + 1;
             }
         }
 
@@ -192,23 +180,21 @@ static int create_group(Groups *groups, Simulator *simulator, unsigned int combs
 
             if (groups->groups[groups->group_count - 1].terms == NULL)
                 return 5;
-
-            group_id = groups->group_count;
         }
     }
 
     for (short i_ml = -max_ml; i_ml <= max_ml; ++i_ml) {
         for (short i_ms = (short) (-max_ms * 2); i_ms <= (short) (max_ms * 2); ++i_ms) {
-            for (unsigned short i = 0; i < combs / 2; ++i) {
-                if (!simulator->rows[i].group
-                        && simulator->rows[i].ml == i_ml
-                        && simulator->rows[i].ms == ((float) i_ms) / 2) {
-                    simulator->rows[i].group = group_id;
+            for (unsigned short i = 0; i < simulator->compressed->rowsCount / 2; ++i) {
+                if (simulator->compressed->rows[i].count
+                        && simulator->compressed->rows[i].ml == i_ml
+                        && simulator->compressed->rows[i].ms == ((float) i_ms) / 2) {
+                    --simulator->compressed->rows[i].count;
                     break;
-                } else if (!simulator->rows[combs - 1 - i].group
-                        && simulator->rows[combs - 1 - i].ml == i_ml
-                        && simulator->rows[combs - 1 - i].ms == ((float) i_ms) / 2) {
-                    simulator->rows[combs - 1 - i].group = group_id;
+                } else if (simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].count
+                        && simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ml == i_ml
+                        && simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ms == ((float) i_ms) / 2) {
+                    --simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].count;
                     break;
                 }
             }
