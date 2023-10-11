@@ -8,11 +8,25 @@
 #include "simulator.c"
 
 
+#define ABS(expression) (((expression) >= 0) ? (expression) : ((expression) * (-1)))
+
+
+typedef struct {
+    unsigned short sup;
+    char *x;
+    float sub;
+} Term;
+
+typedef struct {
+    unsigned short term_count;
+    Term *terms;
+} Terms;
+
 typedef struct {
     short abs_ml;
     float abs_ms;
     unsigned int id, count;
-    char *term;
+    Terms *terms;
 } Group;
 
 typedef struct {
@@ -33,7 +47,7 @@ static PyObject *Groups_New(PyTypeObject *type, PyObject *args, PyObject *kwargs
     return (PyObject*) self;
 }
 
-static short find_max_ml_no_group(Simulator *simulator, unsigned int combs) {
+static short find_max_ml(Simulator *simulator, unsigned int combs) {
     short max_ml = -1;
     for (unsigned int i = 0; i < combs / 2; ++i) {
         if (!simulator->rows[i].group) {
@@ -57,7 +71,7 @@ static short find_max_ml_no_group(Simulator *simulator, unsigned int combs) {
     return max_ml;
 }
 
-static float find_max_ms_no_group_with_ml(Simulator *simulator, unsigned int combs, short abs_ml) {
+static float find_max_ms_with_ml(Simulator *simulator, unsigned int combs, short abs_ml) {
     float max_ms = -1;
 
     for (unsigned int i = 0; i < combs / 2; ++i) {
@@ -86,12 +100,51 @@ static float find_max_ms_no_group_with_ml(Simulator *simulator, unsigned int com
     return max_ms;
 }
 
+static Terms *create_terms(unsigned short abs_ml, float abs_ms) {
+    Terms *terms = (Terms*) malloc(sizeof(Terms));
+    if (terms == NULL)
+        return NULL;
+
+    unsigned short sup = (unsigned short) (2 * abs_ms) + 1;
+    float min_sub = ABS(abs_ml - abs_ms), max_sub = abs_ml + abs_ms;
+    char *x;
+    switch (abs_ml) {
+        case 0:
+            x = "S";
+            break;
+        case 1:
+            x = "P";
+            break;
+        case 2:
+            x = "D";
+            break;
+        default:
+            x = "F";
+            break;
+    }
+
+    terms->term_count = (unsigned short) (max_sub - min_sub) + 1;
+    terms->terms = (Term*) malloc(sizeof(Term) * terms->term_count);
+    if (terms->terms == NULL) {
+        free(terms);
+        return NULL;
+    }
+
+    for (unsigned short i = 0; i < terms->term_count; ++i) {
+        terms->terms[i].sup = sup;
+        terms->terms[i].x = x;
+        terms->terms[i].sub = min_sub + i;
+    }
+
+    return terms;
+}
+
 static int create_group(Groups *groups, Simulator *simulator, unsigned int combs) {
-    short max_ml = find_max_ml_no_group(simulator, combs);
+    short max_ml = find_max_ml(simulator, combs);
     if (max_ml == -1)
         return 1;
 
-    float max_ms = find_max_ms_no_group_with_ml(simulator, combs, max_ml);
+    float max_ms = find_max_ms_with_ml(simulator, combs, max_ml);
     if (max_ms == -1.0)
         return 2;
 
@@ -107,7 +160,10 @@ static int create_group(Groups *groups, Simulator *simulator, unsigned int combs
         groups->groups[0].id = 1;
         groups->groups[0].abs_ml = max_ml;
         groups->groups[0].abs_ms = max_ms;
-//        groups->groups[0].term = "None";
+        groups->groups[0].terms = create_terms(max_ml, max_ms);
+
+        if (groups->groups[0].terms == NULL)
+            return 5;
 
         group_id = 1;
     } else {
@@ -132,7 +188,10 @@ static int create_group(Groups *groups, Simulator *simulator, unsigned int combs
             groups->groups[groups->group_count - 1].id = groups->group_count;
             groups->groups[groups->group_count - 1].abs_ml = max_ml;
             groups->groups[groups->group_count - 1].abs_ms = max_ms;
-//            groups->groups[groups->group_count - 1].term = "None";
+            groups->groups[groups->group_count - 1].terms = create_terms(max_ml, max_ms);
+
+            if (groups->groups[groups->group_count - 1].terms == NULL)
+                return 5;
 
             group_id = groups->group_count;
         }
@@ -140,11 +199,16 @@ static int create_group(Groups *groups, Simulator *simulator, unsigned int combs
 
     for (short i_ml = -max_ml; i_ml <= max_ml; ++i_ml) {
         for (short i_ms = (short) (-max_ms * 2); i_ms <= (short) (max_ms * 2); ++i_ms) {
-            for (unsigned short i = 0; i < combs; ++i) {
+            for (unsigned short i = 0; i < combs / 2; ++i) {
                 if (!simulator->rows[i].group
                         && simulator->rows[i].ml == i_ml
                         && simulator->rows[i].ms == ((float) i_ms) / 2) {
                     simulator->rows[i].group = group_id;
+                    break;
+                } else if (!simulator->rows[combs - 1 - i].group
+                        && simulator->rows[combs - 1 - i].ml == i_ml
+                        && simulator->rows[combs - 1 - i].ms == ((float) i_ms) / 2) {
+                    simulator->rows[combs - 1 - i].group = group_id;
                     break;
                 }
             }
@@ -177,22 +241,36 @@ static int Groups_Init(Groups *self, PyObject *args, PyObject *kwargs) {
 }
 
 static void Groups_Dealloc(Groups *self) {
-    if (self->groups != NULL)
+    if (self->groups != NULL) {
+        for (unsigned int i = 0; i < self->group_count; ++i) {
+            free(self->groups[i].terms->terms);
+            free(self->groups[i].terms);
+        }
+
         free(self->groups);
+    }
 
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
 
 static PyObject *group_to_tuple(Group *group) {
-    PyObject *tuple = PyTuple_New(5);
+    PyObject *tuple = PyTuple_New(5), *terms = PyTuple_New(group->terms->term_count);
+
+    for (unsigned short i = 0; i < group->terms->term_count; ++i) {
+        PyObject *term = PyTuple_New(3);
+        PyTuple_SET_ITEM(term, 0, PyLong_FromSsize_t((unsigned int) group->terms->terms[i].sup));
+        PyTuple_SET_ITEM(term, 1, PyUnicode_FromString(group->terms->terms[i].x));
+        PyTuple_SET_ITEM(term, 2, PyFloat_FromDouble((double) group->terms->terms[i].sub));
+
+        PyTuple_SET_ITEM(terms, i, term);
+    }
 
     PyTuple_SET_ITEM(tuple, 0, PyLong_FromSize_t(group->id));
     PyTuple_SET_ITEM(tuple, 1, PyLong_FromSsize_t((int) group->abs_ml));
     PyTuple_SET_ITEM(tuple, 2, PyFloat_FromDouble((double) group->abs_ms));
     PyTuple_SET_ITEM(tuple, 3, PyLong_FromSize_t(group->count));
-//    PyTuple_SET_ITEM(tuple, 4, PyUnicode_FromString(group->term));
-    PyTuple_SET_ITEM(tuple, 4, PyUnicode_FromString(""));
+    PyTuple_SET_ITEM(tuple, 4, terms);
 
     Py_INCREF(tuple);
 

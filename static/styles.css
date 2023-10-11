@@ -22,6 +22,7 @@ body {
 .left-column {
     float: left;
     width: 500px;
+    min-width: min-content;
 }
 
 .right-column {

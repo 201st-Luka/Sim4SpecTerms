@@ -30,6 +30,8 @@ function simulate() {
     pagePrevButton().disabled = true;
     pageNextButton().disabled = true;
 
+    page = 1;
+
     fetch('/api/simulator', {
         method: 'POST',
         headers: {
@@ -80,10 +82,16 @@ function simulate() {
 
         for (let i = 0; i < data.terms.length; ++i) {
             const tr = termsTable().insertRow();
-            for (let j = 0; j < 5; ++j) {
+            for (let j = 0; j < 4; ++j) {
                 const td = tr.insertCell();
                 td.innerText = `${data.terms[i][j]}`;
             }
+            const td = tr.insertCell();
+            const htmlArray = [];
+            for (let j = 0; j < data.terms[i][4].length; j++) {
+                htmlArray[j] = `<sup>${data.terms[i][4][j][0]}</sup>${data.terms[i][4][j][1]}<sub>${data.terms[i][4][j][2]}</sub>`;
+            }
+            td.innerHTML = htmlArray.join(', ');
         }
     })
     .catch(error => {

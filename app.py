@@ -22,8 +22,7 @@ def api_simulator():
         range_start=range_start, range_end=range_end,
         rows=sim[range_start:range_end],
         rows_len=len(sim),
-        terms=list(terms),
-        terms_len=len(terms)
+        terms=list(terms)
     )
 
 
