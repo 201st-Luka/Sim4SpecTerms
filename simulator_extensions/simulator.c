@@ -31,7 +31,6 @@ typedef struct {
     unsigned int orbitals;
     short ml;
     float ms;
-    unsigned int group;
 } SimulatorRow;
 
 
@@ -96,7 +95,6 @@ static int generate_rows(Simulator* self) {
             self->rows[i].ms += (float)((self->rows[i].orbitals & (1 << (f * 2 + 1))) >> (f * 2 + 1)) - (float)((self->rows[i].orbitals & (1 << (f * 2))) >> (f * 2));
             self->rows[i].ml += (((self->rows[i].orbitals & (1 << (f * 2 + 1))) >> (f * 2 + 1)) + ((self->rows[i].orbitals & (1 << (f * 2))) >> (f * 2))) * (-f + 3);
         }
-        self->rows[i].group = 0;
         self->rows[i].ms /= 2;
 
         if (self->compressed->rows == NULL) {
