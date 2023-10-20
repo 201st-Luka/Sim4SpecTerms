@@ -204,8 +204,10 @@ static int create_group(Groups *groups, Simulator *simulator, unsigned int combs
 }
 
 static int Groups_Init(Groups *self, PyObject *args, PyObject *kwargs) {
-    Simulator *simulator;
+    Simulator *simulator = NULL;
     PyArg_ParseTuple(args, "O!", &SimulatorType, &simulator);
+    if (simulator == NULL)
+        return 1;
 
     self->group_count = 0;
 
