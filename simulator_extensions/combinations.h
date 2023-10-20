@@ -30,6 +30,7 @@ PyObject *Combinations_GetD(Combinations *self, void *closure);
 
 PyObject *Combinations_GetF(Combinations *self, void *closure);
 
+
 extern PyGetSetDef Combinations_getset[];
 
 extern PyTypeObject CombinationsType;

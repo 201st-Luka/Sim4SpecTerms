@@ -9,13 +9,13 @@
 #include <python3.11/Python.h>
 
 #include "possibility.h"
-#include "combinations.c"
 
 
 typedef struct {
     PyObject_HEAD
     Possibility *s, *p, *d, *f;
 } Possibilities;
+
 
 PyObject *Possibilities_New(PyTypeObject *type, PyObject *args, PyObject *kwargs);
 
@@ -30,6 +30,7 @@ PyObject *Possibilities_GetP(Possibilities *self, void *closure);
 PyObject *Possibilities_GetD(Possibilities *self, void *closure);
 
 PyObject *Possibilities_GetF(Possibilities *self, void *closure);
+
 
 extern PyGetSetDef Possibilities_getset[];
 

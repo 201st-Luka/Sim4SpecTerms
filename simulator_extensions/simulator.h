@@ -9,6 +9,7 @@
 #include <python3.11/Python.h>
 #include <stdlib.h>
 
+#include "combinations.h"
 #include "possibilities.h"
 
 
@@ -63,6 +64,7 @@ PyObject *Simulator_IterNext(Simulator *iter);
 PyObject *Simulator_GetItem(Simulator *self, PyObject *key);
 
 Py_ssize_t Simulator_Len(Simulator *self);
+
 
 extern PyGetSetDef Simulator_getset[];
 

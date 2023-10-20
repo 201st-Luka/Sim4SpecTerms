@@ -34,12 +34,16 @@ static void generate_permutation(unsigned int ones, unsigned int length, unsigne
     permute(result, 0, ones, length, 0, &result_len);
 }
 
+static PyObject *int_to_arrow_tuple(unsigned short value, unsigned int len) {
+    PyObject *tuple = PyTuple_New(len);
+    for (unsigned short i = 1; i <= len; ++i) {
+        PyTuple_SET_ITEM(tuple, len - i, int_to_arrow(value % 4));
+        value /= 4;
+    }
 
-//typedef struct {
-//    PyObject_HEAD
-//    unsigned int combinations, electrons, max_electrons, iter;
-//    unsigned short *poss;
-//} Possibility;
+    return tuple;
+}
+
 
 PyObject *Possibility_New(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     Possibility *self = (Possibility*) type->tp_alloc(type, 0);
@@ -71,7 +75,7 @@ void Possibility_Dealloc(Possibility *self) {
 
 PyObject *Possibility_Iter(Possibility *self) {
     self->iter = 0;
-    
+
     Py_INCREF(self);
 
     return (PyObject*) self;
@@ -90,16 +94,6 @@ PyObject *int_to_arrow(unsigned short sub_value) {
     }
 
     return NULL;
-}
-
-static PyObject *int_to_arrow_tuple(unsigned short value, unsigned int len) {
-    PyObject *tuple = PyTuple_New(len);
-    for (unsigned short i = 1; i <= len; ++i) {
-        PyTuple_SET_ITEM(tuple, len - i, int_to_arrow(value % 4));
-        value /= 4;
-    }
-
-    return tuple;
 }
 
 PyObject *Possibility_IterNext(Possibility *iter) {
@@ -123,6 +117,7 @@ PyObject *Possibility_GetItem(Possibility *self, Py_ssize_t index) {
     Py_INCREF(tuple);
     return tuple;
 }
+
 
 PySequenceMethods Possibility_sequence_methods = {
     .sq_length = 0,

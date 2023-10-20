@@ -1,10 +1,10 @@
 #include <python3.11/Python.h>
 
-#include "combinations.c"
+#include "possibility.h"
+#include "possibilities.h"
+#include "combinations.h"
 #include "simulator.h"
-#include "possibility.c"
-#include "possibilities.c"
-#include "groups.c"
+#include "groups.h"
 
 
 static struct PyModuleDef simulatormodule = {
@@ -38,7 +38,6 @@ PyMODINIT_FUNC PyInit_simulator(void) {
     PyModule_AddObject(module, "Possibility", (PyObject*) &PossibilityType);
     PyModule_AddObject(module, "Possibilities", (PyObject*) &PossibilitiesType);
     PyModule_AddObject(module, "Groups", (PyObject*) &GroupsType);
-
 
     return module;
 }

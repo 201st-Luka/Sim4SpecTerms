@@ -2,7 +2,14 @@ from distutils.core import setup, Extension
 
 simulator_extensions = Extension(
     'simulator',
-    sources=['simulator_extensions/module.c']
+    sources=[
+        'simulator_extensions/module.c',
+        'simulator_extensions/combinations.c',
+        'simulator_extensions/groups.c',
+        'simulator_extensions/possibilities.c',
+        'simulator_extensions/possibility.c',
+        'simulator_extensions/simulator.c',
+    ]
 )
 
 setup(

@@ -22,6 +22,7 @@ typedef struct {
     unsigned short *poss;
 } Possibility;
 
+
 PyObject *Possibility_New(PyTypeObject *type, PyObject *args, PyObject *kwargs);
 
 int Possibility_Init(Possibility *self, PyObject *args, PyObject *kwargs);
@@ -35,6 +36,7 @@ PyObject *int_to_arrow(unsigned short sub_value);
 PyObject *Possibility_IterNext(Possibility *iter);
 
 PyObject *Possibility_GetItem(Possibility *self, Py_ssize_t index);
+
 
 extern PySequenceMethods Possibility_sequence_methods;
 

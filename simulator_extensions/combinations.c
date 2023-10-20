@@ -21,11 +21,6 @@ static unsigned int combination(unsigned int n, unsigned int max_electrons) {
 }
 
 
-//typedef struct {
-//    PyObject_HEAD
-//    unsigned int s, p, d, f;
-//} Combinations;
-
 PyObject* Combinations_New(PyTypeObject* type, PyObject* args, PyObject* kwargs) {
     Combinations* self = (Combinations*) type->tp_alloc(type, 0);
     if (self != NULL) {

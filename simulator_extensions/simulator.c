@@ -6,8 +6,6 @@
 #include <stdlib.h>
 
 #include "simulator.h"
-#include "combinations.c"
-#include "possibilities.c"
 
 
 #define S_ORBITAL 2
@@ -17,61 +15,6 @@
 #define TOTAL_ORBITALS 32
 
 
-//typedef struct {
-//    short ml;
-//    float ms;
-//    unsigned short count;
-//} CompressedSimulatorRow;
-//
-//typedef struct {
-//    CompressedSimulatorRow *rows;
-//    unsigned int rowsCount;
-//} CompressedSimulator;
-//
-//typedef struct {
-//    unsigned int orbitals;
-//    short ml;
-//    float ms;
-//} SimulatorRow;
-//
-//
-//typedef struct {
-//    PyObject_HEAD
-//    unsigned int s, p, d, f, iter;
-//    Combinations *combinations;
-//    Possibilities *possibilities;
-//    SimulatorRow *rows;
-//    CompressedSimulator *compressed;
-//} Simulator;
-
-PyObject *Simulator_New(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
-    Simulator *self = (Simulator*) type->tp_alloc(type, 0);
-    if (self != NULL) {
-        if ((self->combinations = (Combinations*) CombinationsType.tp_new(&CombinationsType, args, kwargs)) == NULL) {
-            Py_DECREF(self);
-            Py_TYPE(self)->tp_free((PyObject*) self);
-            self = NULL;
-        } else if ((self->possibilities = (Possibilities*) PossibilitiesType.tp_new(&PossibilitiesType, args, kwargs)) == NULL) {
-            Py_DECREF(self);
-            Py_TYPE(self)->tp_free((PyObject*) self);
-            self = NULL;
-        } else if ((self->compressed = (CompressedSimulator*) malloc(sizeof(CompressedSimulator))) == NULL) {
-            Py_DECREF(self);
-            Py_TYPE(self)->tp_free((PyObject*) self);
-            self = NULL;
-        } else {
-            self->s = 0;
-            self->p = 0;
-            self->d = 0;
-            self->f = 0;
-            self->compressed->rows = NULL;
-            self->compressed->rowsCount = 0;
-        }
-
-    }
-    return (PyObject*) self;
-}
-
 static int generate_rows(Simulator* self) {
     unsigned int all_combs = self->combinations->s * self->combinations->p * self->combinations->d * self->combinations->f,
             d_combs = self->combinations->f * self->combinations->d,
@@ -79,9 +22,9 @@ static int generate_rows(Simulator* self) {
 
     for (unsigned int i = 0; i < all_combs; i++) {
         self->rows[i].orbitals = (((((self->possibilities->s->poss[i / p_combs] << P_ORBITAL)
-                | self->possibilities->p->poss[(i % p_combs) / d_combs]) << D_ORBITAL)
-                | self->possibilities->d->poss[(i % d_combs) / self->combinations->f]) << F_ORBITAL)
-                | self->possibilities->f->poss[i % self->combinations->f];
+                                     | self->possibilities->p->poss[(i % p_combs) / d_combs]) << D_ORBITAL)
+                                   | self->possibilities->d->poss[(i % d_combs) / self->combinations->f]) << F_ORBITAL)
+                                 | self->possibilities->f->poss[i % self->combinations->f];
         self->rows[i].ms = (float)((self->rows[i].orbitals & (1 << 31)) >> 31) - (float)((self->rows[i].orbitals & (1 << 30)) >> 30);
         self->rows[i].ml = 0;
         for (int pdf = (P_ORBITAL + D_ORBITAL + F_ORBITAL) / 2 - 1; pdf >= (D_ORBITAL + F_ORBITAL) / 2; --pdf) {
@@ -113,7 +56,7 @@ static int generate_rows(Simulator* self) {
             short found = 0;
             for (unsigned int j = 0; j < self->compressed->rowsCount; ++j) {
                 if (self->compressed->rows[j].ms == self->rows[i].ms
-                        && self->compressed->rows[j].ml == self->rows[i].ml) {
+                    && self->compressed->rows[j].ml == self->rows[i].ml) {
                     ++self->compressed->rows[j].count;
                     found = 1;
                     break;
@@ -136,6 +79,48 @@ static int generate_rows(Simulator* self) {
     }
 
     return 0;
+}
+
+static PyObject *row_to_arrow_tuple(SimulatorRow *row) {
+    PyObject *tuple = PyTuple_New((TOTAL_ORBITALS / 2) + 2);
+    unsigned int value = row->orbitals;
+    for (unsigned short i = 1; i <= TOTAL_ORBITALS / 2; ++i) {
+        PyTuple_SET_ITEM(tuple, TOTAL_ORBITALS / 2 - i, int_to_arrow(value % 4));
+        value /= 4;
+    }
+    PyTuple_SET_ITEM(tuple, TOTAL_ORBITALS / 2, PyLong_FromLong((long) row->ml));
+    PyTuple_SET_ITEM(tuple, TOTAL_ORBITALS / 2 + 1, PyFloat_FromDouble((double) row->ms));
+
+    return tuple;
+}
+
+
+PyObject *Simulator_New(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
+    Simulator *self = (Simulator*) type->tp_alloc(type, 0);
+    if (self != NULL) {
+        if ((self->combinations = (Combinations*) CombinationsType.tp_new(&CombinationsType, args, kwargs)) == NULL) {
+            Py_DECREF(self);
+            Py_TYPE(self)->tp_free((PyObject*) self);
+            self = NULL;
+        } else if ((self->possibilities = (Possibilities*) PossibilitiesType.tp_new(&PossibilitiesType, args, kwargs)) == NULL) {
+            Py_DECREF(self);
+            Py_TYPE(self)->tp_free((PyObject*) self);
+            self = NULL;
+        } else if ((self->compressed = (CompressedSimulator*) malloc(sizeof(CompressedSimulator))) == NULL) {
+            Py_DECREF(self);
+            Py_TYPE(self)->tp_free((PyObject*) self);
+            self = NULL;
+        } else {
+            self->s = 0;
+            self->p = 0;
+            self->d = 0;
+            self->f = 0;
+            self->compressed->rows = NULL;
+            self->compressed->rowsCount = 0;
+        }
+
+    }
+    return (PyObject*) self;
 }
 
 int Simulator_Init(Simulator *self, PyObject *args, PyObject *kwargs) {
@@ -194,31 +179,12 @@ PyObject  *Simulator_GetPossibilities(Simulator* self, void *closure) {
     return (PyObject*) self->possibilities;
 }
 
-PyGetSetDef Simulator_getset[] = {
-    {"combinations", (getter) Simulator_GetCombinations, NULL, "combinations of the orbirals", NULL},
-    {"possibilities", (getter) Simulator_GetPossibilities, NULL, "possibilities of the orbirals", NULL},
-    {NULL}
-};
-
 PyObject *Simulator_Iter(Simulator *self) {
     self->iter = 0;
 
     Py_INCREF(self);
 
     return (PyObject*) self;
-}
-
-static PyObject *row_to_arrow_tuple(SimulatorRow *row) {
-    PyObject *tuple = PyTuple_New((TOTAL_ORBITALS / 2) + 2);
-    unsigned int value = row->orbitals;
-    for (unsigned short i = 1; i <= TOTAL_ORBITALS / 2; ++i) {
-        PyTuple_SET_ITEM(tuple, TOTAL_ORBITALS / 2 - i, int_to_arrow(value % 4));
-        value /= 4;
-    }
-    PyTuple_SET_ITEM(tuple, TOTAL_ORBITALS / 2, PyLong_FromLong((long) row->ml));
-    PyTuple_SET_ITEM(tuple, TOTAL_ORBITALS / 2 + 1, PyFloat_FromDouble((double) row->ms));
-
-    return tuple;
 }
 
 PyObject *Simulator_IterNext(Simulator *iter) {
@@ -273,6 +239,12 @@ Py_ssize_t Simulator_Len(Simulator *self) {
     return (Py_ssize_t) (self->combinations->s * self->combinations->p * self->combinations->d * self->combinations->f);
 }
 
+
+PyGetSetDef Simulator_getset[] = {
+        {"combinations", (getter) Simulator_GetCombinations, NULL, "combinations of the orbirals", NULL},
+        {"possibilities", (getter) Simulator_GetPossibilities, NULL, "possibilities of the orbirals", NULL},
+        {NULL}
+};
 
 PySequenceMethods Simulator_sequence_methods = {
     .sq_length = (lenfunc) Simulator_Len,

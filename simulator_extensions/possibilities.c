@@ -6,13 +6,8 @@
 
 #include "possibilities.h"
 #include "possibility.h"
-#include "combinations.c"
+#include "combinations.h"
 
-
-//typedef struct {
-//    PyObject_HEAD
-//    Possibility *s, *p, *d, *f;
-//} Possibilities;
 
 PyObject *Possibilities_New(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     Possibilities *self = (Possibilities*) type->tp_alloc(type, 0);

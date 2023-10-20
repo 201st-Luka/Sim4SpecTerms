@@ -5,47 +5,12 @@
 #include <python3.11/Python.h>
 #include <stdlib.h>
 
-#include "simulator.c"
+#include "groups.h"
+#include "simulator.h"
 
 
 #define ABS(expression) (((expression) >= 0) ? (expression) : ((expression) * (-1)))
 
-
-typedef struct {
-    unsigned short sup;
-    char *x;
-    float sub;
-} Term;
-
-typedef struct {
-    unsigned short term_count;
-    Term *terms;
-} Terms;
-
-typedef struct {
-    short abs_ml;
-    float abs_ms;
-    unsigned int id, count;
-    Terms *terms;
-} Group;
-
-typedef struct {
-    PyObject_HEAD
-    Group *groups;
-    unsigned int group_count, iter;
-} Groups;
-
-
-static PyObject *Groups_New(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
-    Groups *self = (Groups*) type->tp_alloc(type, 0);
-    if (self != NULL)
-        self->groups = NULL;
-    else {
-        PyErr_SetString(PyExc_MemoryError, "Not enough free memory left.");
-    }
-
-    return (PyObject*) self;
-}
 
 static short find_max_ml(Simulator *simulator) {
     short max_ml = -1;
@@ -60,7 +25,7 @@ static short find_max_ml(Simulator *simulator) {
             } else if (simulator->compressed->rows[i].ml > max_ml)
                 max_ml = simulator->compressed->rows[i].ml;
         } else if (simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].count
-                && simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ml > max_ml)
+                   && simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ml > max_ml)
             max_ml = simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ml;
     }
 
@@ -72,9 +37,9 @@ static float find_max_ms_with_ml(Simulator *simulator, short abs_ml) {
 
     for (unsigned int i = 0; i < simulator->compressed->rowsCount / 2; ++i) {
         if (simulator->compressed->rows[i].count
-                && simulator->compressed->rows[i].ml == abs_ml) {
+            && simulator->compressed->rows[i].ml == abs_ml) {
             if (simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].count
-                    && simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ml == abs_ml) {
+                && simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ml == abs_ml) {
                 if (simulator->compressed->rows[i].ms > simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ms) {
                     if (simulator->compressed->rows[i].ms > max_ms)
                         max_ms = simulator->compressed->rows[i].ms;
@@ -83,8 +48,8 @@ static float find_max_ms_with_ml(Simulator *simulator, short abs_ml) {
             } else if (simulator->compressed->rows[i].ms > max_ms)
                 max_ms = simulator->compressed->rows[i].ms;
         } else if(simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].count
-                && simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ml == abs_ml
-                && simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ms > max_ms)
+                  && simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ml == abs_ml
+                  && simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ms > max_ms)
             max_ms = simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ms;
     }
 
@@ -159,7 +124,7 @@ static int create_group(Groups *groups, Simulator *simulator, unsigned int combs
         short found = 0;
         for (unsigned int i = 0; i < groups->group_count && !found; ++i) {
             if (groups->groups[i].abs_ml == max_ml
-                    && groups->groups[i].abs_ms == max_ms) {
+                && groups->groups[i].abs_ms == max_ms) {
                 ++groups->groups[i].count;
                 found = 1;
             }
@@ -187,13 +152,13 @@ static int create_group(Groups *groups, Simulator *simulator, unsigned int combs
         for (short i_ms = (short) (-max_ms * 2); i_ms <= (short) (max_ms * 2); ++i_ms) {
             for (unsigned short i = 0; i < simulator->compressed->rowsCount / 2; ++i) {
                 if (simulator->compressed->rows[i].count
-                        && simulator->compressed->rows[i].ml == i_ml
-                        && simulator->compressed->rows[i].ms == ((float) i_ms) / 2) {
+                    && simulator->compressed->rows[i].ml == i_ml
+                    && simulator->compressed->rows[i].ms == ((float) i_ms) / 2) {
                     --simulator->compressed->rows[i].count;
                     break;
                 } else if (simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].count
-                        && simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ml == i_ml
-                        && simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ms == ((float) i_ms) / 2) {
+                           && simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ml == i_ml
+                           && simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ms == ((float) i_ms) / 2) {
                     --simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].count;
                     break;
                 }
@@ -202,45 +167,6 @@ static int create_group(Groups *groups, Simulator *simulator, unsigned int combs
     }
     return 0;
 }
-
-static int Groups_Init(Groups *self, PyObject *args, PyObject *kwargs) {
-    Simulator *simulator = NULL;
-    PyArg_ParseTuple(args, "O!", &SimulatorType, &simulator);
-    if (simulator == NULL)
-        return 1;
-
-    self->group_count = 0;
-
-    unsigned int combs = simulator->combinations->s
-            * simulator->combinations->p
-            * simulator->combinations->d
-            * simulator->combinations->f;
-
-    int result;
-    while ((result = create_group(self, simulator, combs)) == 0);
-
-
-    if (result) {
-        return 0;
-    } else {
-        PyErr_SetString(PyExc_Exception, "Something went wrong while calculating the groups.");
-        return 1;
-    }
-}
-
-static void Groups_Dealloc(Groups *self) {
-    if (self->groups != NULL) {
-        for (unsigned int i = 0; i < self->group_count; ++i) {
-            free(self->groups[i].terms->terms);
-            free(self->groups[i].terms);
-        }
-
-        free(self->groups);
-    }
-
-    Py_TYPE(self)->tp_free((PyObject*) self);
-}
-
 
 static PyObject *group_to_tuple(Group *group) {
     PyObject *tuple = PyTuple_New(5), *terms = PyTuple_New(group->terms->term_count);
@@ -266,7 +192,56 @@ static PyObject *group_to_tuple(Group *group) {
 }
 
 
-static PyObject *Groups_GetItem(Groups *self, PyObject *key) {
+PyObject *Groups_New(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
+    Groups *self = (Groups*) type->tp_alloc(type, 0);
+    if (self != NULL)
+        self->groups = NULL;
+    else {
+        PyErr_SetString(PyExc_MemoryError, "Not enough free memory left.");
+    }
+
+    return (PyObject*) self;
+}
+
+int Groups_Init(Groups *self, PyObject *args, PyObject *kwargs) {
+    Simulator *simulator = NULL;
+    PyArg_ParseTuple(args, "O!", &SimulatorType, &simulator);
+    if (simulator == NULL)
+        return 1;
+
+    self->group_count = 0;
+
+    unsigned int combs = simulator->combinations->s
+            * simulator->combinations->p
+            * simulator->combinations->d
+            * simulator->combinations->f;
+
+    int result;
+    while ((result = create_group(self, simulator, combs)) == 0);
+
+
+    if (result) {
+        return 0;
+    } else {
+        PyErr_SetString(PyExc_Exception, "Something went wrong while calculating the groups.");
+        return 1;
+    }
+}
+
+void Groups_Dealloc(Groups *self) {
+    if (self->groups != NULL) {
+        for (unsigned int i = 0; i < self->group_count; ++i) {
+            free(self->groups[i].terms->terms);
+            free(self->groups[i].terms);
+        }
+
+        free(self->groups);
+    }
+
+    Py_TYPE(self)->tp_free((PyObject*) self);
+}
+
+PyObject *Groups_GetItem(Groups *self, PyObject *key) {
     if (PyLong_Check(key)) {
         return group_to_tuple(&(self->groups[PyLong_AsSize_t(key) % self->group_count]));
     } else if (PySlice_Check(key)) {
@@ -301,7 +276,7 @@ static PyObject *Groups_GetItem(Groups *self, PyObject *key) {
     }
 }
 
-static PyObject *Groups_Iter(Groups *self) {
+PyObject *Groups_Iter(Groups *self) {
     self->iter = 0;
 
     Py_INCREF(self);
@@ -309,7 +284,7 @@ static PyObject *Groups_Iter(Groups *self) {
     return (PyObject*) self;
 }
 
-static PyObject *Groups_IterNext(Groups *iter) {
+PyObject *Groups_IterNext(Groups *iter) {
     if (iter->iter < iter->group_count)
         return group_to_tuple(&(iter->groups[iter->iter++]));
 
@@ -317,16 +292,16 @@ static PyObject *Groups_IterNext(Groups *iter) {
     return NULL;
 }
 
-static Py_ssize_t Groups_Len(Groups *self) {
+Py_ssize_t Groups_Len(Groups *self) {
     return (Py_ssize_t) self->group_count;
 }
 
 
-static PySequenceMethods Groups_sequence_methods = {
-        .sq_length = (lenfunc) Groups_Len,
+PySequenceMethods Groups_sequence_methods = {
+    .sq_length = (lenfunc) Groups_Len,
 };
 
-static PyMappingMethods Groups_mapping_methods = {
+PyMappingMethods Groups_mapping_methods = {
     .mp_length = 0,
     .mp_subscript = (binaryfunc) Groups_GetItem,
 };
