@@ -5,6 +5,7 @@
 #include <python3.11/Python.h>
 #include <stdlib.h>
 
+#include "simulator.h"
 #include "combinations.c"
 #include "possibilities.c"
 
@@ -16,36 +17,36 @@
 #define TOTAL_ORBITALS 32
 
 
-typedef struct {
-    short ml;
-    float ms;
-    unsigned short count;
-} CompressedSimulatorRow;
+//typedef struct {
+//    short ml;
+//    float ms;
+//    unsigned short count;
+//} CompressedSimulatorRow;
+//
+//typedef struct {
+//    CompressedSimulatorRow *rows;
+//    unsigned int rowsCount;
+//} CompressedSimulator;
+//
+//typedef struct {
+//    unsigned int orbitals;
+//    short ml;
+//    float ms;
+//} SimulatorRow;
+//
+//
+//typedef struct {
+//    PyObject_HEAD
+//    unsigned int s, p, d, f, iter;
+//    Combinations *combinations;
+//    Possibilities *possibilities;
+//    SimulatorRow *rows;
+//    CompressedSimulator *compressed;
+//} Simulator;
 
-typedef struct {
-    CompressedSimulatorRow *rows;
-    unsigned int rowsCount;
-} CompressedSimulator;
-
-typedef struct {
-    unsigned int orbitals;
-    short ml;
-    float ms;
-} SimulatorRow;
-
-
-typedef struct {
-    PyObject_HEAD
-    unsigned int s, p, d, f, iter;
-    Combinations *combinations;
-    Possibilities *possibilities;
-    SimulatorRow *rows;
-    CompressedSimulator *compressed;
-} Simulator;
-
-static PyObject *Simulator_New(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
+PyObject *Simulator_New(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     Simulator *self = (Simulator*) type->tp_alloc(type, 0);
-    if (self != NULL) {        
+    if (self != NULL) {
         if ((self->combinations = (Combinations*) CombinationsType.tp_new(&CombinationsType, args, kwargs)) == NULL) {
             Py_DECREF(self);
             Py_TYPE(self)->tp_free((PyObject*) self);
@@ -137,9 +138,9 @@ static int generate_rows(Simulator* self) {
     return 0;
 }
 
-static int Simulator_Init(Simulator *self, PyObject *args, PyObject *kwargs) {
+int Simulator_Init(Simulator *self, PyObject *args, PyObject *kwargs) {
     PyArg_ParseTuple(args, "iiii", &self->s, &self->p, &self->d, &self->f);
-    
+
     CombinationsType.tp_init((PyObject*) self->combinations, args, kwargs);
     PyObject *args_tuple = PyTuple_New(2);
     PyTuple_SET_ITEM(args_tuple, 0, args);
@@ -164,7 +165,7 @@ static int Simulator_Init(Simulator *self, PyObject *args, PyObject *kwargs) {
     return 0;
 }
 
-static void Simulator_Dealloc(Simulator *self) {
+void Simulator_Dealloc(Simulator *self) {
     if (self->combinations != NULL)
         Py_XDECREF(self->combinations);
 
@@ -183,23 +184,23 @@ static void Simulator_Dealloc(Simulator *self) {
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
-static PyObject *Simulator_GetCombinations(Simulator *self, void *closure) {
+PyObject *Simulator_GetCombinations(Simulator *self, void *closure) {
     Py_INCREF(self->combinations);
     return (PyObject*) self->combinations;
 }
 
-static PyObject  *Simulator_GetPossibilities(Simulator* self, void *closure) {
+PyObject  *Simulator_GetPossibilities(Simulator* self, void *closure) {
     Py_INCREF(self->possibilities);
     return (PyObject*) self->possibilities;
 }
 
-static PyGetSetDef Simulator_getset[] = {
+PyGetSetDef Simulator_getset[] = {
     {"combinations", (getter) Simulator_GetCombinations, NULL, "combinations of the orbirals", NULL},
     {"possibilities", (getter) Simulator_GetPossibilities, NULL, "possibilities of the orbirals", NULL},
     {NULL}
 };
 
-static PyObject *Simulator_Iter(Simulator *self) {
+PyObject *Simulator_Iter(Simulator *self) {
     self->iter = 0;
 
     Py_INCREF(self);
@@ -220,7 +221,7 @@ static PyObject *row_to_arrow_tuple(SimulatorRow *row) {
     return tuple;
 }
 
-static PyObject *Simulator_IterNext(Simulator *iter) {
+PyObject *Simulator_IterNext(Simulator *iter) {
     if (iter->iter < iter->combinations->s * iter->combinations->p * iter->combinations->d * iter->combinations->f) {
         PyObject *tuple = row_to_arrow_tuple(&iter->rows[iter->iter]);
         Py_INCREF(tuple);
@@ -232,7 +233,7 @@ static PyObject *Simulator_IterNext(Simulator *iter) {
     }
 }
 
-static PyObject *Simulator_GetItem(Simulator *self, PyObject *key) {
+PyObject *Simulator_GetItem(Simulator *self, PyObject *key) {
     if (PyLong_Check(key)) {
         return row_to_arrow_tuple(
             &self->rows[PyLong_AsSize_t(key) % self->combinations->s * self->combinations->p * self->combinations->d * self->combinations->f]
@@ -257,7 +258,7 @@ static PyObject *Simulator_GetItem(Simulator *self, PyObject *key) {
             PyErr_SetString(PyExc_MemoryError, "Failed to allocate memory for result");
             return NULL;
         }
-        
+
         for (unsigned int i = start; i < stop; i += step) {
             PyList_SET_ITEM(result, (i - start) / step, row_to_arrow_tuple(&self->rows[i]));
         }
@@ -268,16 +269,16 @@ static PyObject *Simulator_GetItem(Simulator *self, PyObject *key) {
     }
 }
 
-static Py_ssize_t Simulator_Len(Simulator *self) {
+Py_ssize_t Simulator_Len(Simulator *self) {
     return (Py_ssize_t) (self->combinations->s * self->combinations->p * self->combinations->d * self->combinations->f);
 }
 
 
-static PySequenceMethods Simulator_sequence_methods = {
+PySequenceMethods Simulator_sequence_methods = {
     .sq_length = (lenfunc) Simulator_Len,
 };
 
-static PyMappingMethods Simulator_mapping_methods = {
+PyMappingMethods Simulator_mapping_methods = {
     .mp_length = 0,
     .mp_subscript = (binaryfunc) Simulator_GetItem,
 };

@@ -1,7 +1,7 @@
 #include <python3.11/Python.h>
 
 #include "combinations.c"
-#include "simulator.c"
+#include "simulator.h"
 #include "possibility.c"
 #include "possibilities.c"
 #include "groups.c"

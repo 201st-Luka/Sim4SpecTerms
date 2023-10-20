@@ -5,6 +5,8 @@
 #include <python3.11/Python.h>
 #include <stdlib.h>
 
+#include "combinations.h"
+
 
 static unsigned long int factorial (unsigned int n) {
     long int result = 1;
@@ -19,12 +21,12 @@ static unsigned int combination(unsigned int n, unsigned int max_electrons) {
 }
 
 
-typedef struct {
-    PyObject_HEAD
-    unsigned int s, p, d, f;
-} Combinations;
+//typedef struct {
+//    PyObject_HEAD
+//    unsigned int s, p, d, f;
+//} Combinations;
 
-static PyObject* Combinations_New(PyTypeObject* type, PyObject* args, PyObject* kwargs) {
+PyObject* Combinations_New(PyTypeObject* type, PyObject* args, PyObject* kwargs) {
     Combinations* self = (Combinations*) type->tp_alloc(type, 0);
     if (self != NULL) {
         self->s = 0;
@@ -35,7 +37,7 @@ static PyObject* Combinations_New(PyTypeObject* type, PyObject* args, PyObject* 
     return (PyObject*) self;
 }
 
-static int Combinations_Init(Combinations *self, PyObject *args, PyObject *kwargs) {
+int Combinations_Init(Combinations *self, PyObject *args, PyObject *kwargs) {
     unsigned int s, p, d, f;
     PyArg_ParseTuple(args, "iiii", &s, &p, &d, &f);
 
@@ -47,27 +49,27 @@ static int Combinations_Init(Combinations *self, PyObject *args, PyObject *kwarg
     return 0;
 }
 
-static void Combinations_Dealloc(Combinations *self) {
+void Combinations_Dealloc(Combinations *self) {
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
-static PyObject *Combinations_GetS(Combinations *self, void *closure) {
+PyObject *Combinations_GetS(Combinations *self, void *closure) {
     return PyLong_FromSize_t(self->s);
 }
 
-static PyObject *Combinations_GetP(Combinations *self, void *closure) {
+PyObject *Combinations_GetP(Combinations *self, void *closure) {
     return PyLong_FromSize_t(self->p);
 }
 
-static PyObject *Combinations_GetD(Combinations *self, void *closure) {
+PyObject *Combinations_GetD(Combinations *self, void *closure) {
     return PyLong_FromSize_t(self->d);
 }
 
-static PyObject *Combinations_GetF(Combinations *self, void *closure) {
+PyObject *Combinations_GetF(Combinations *self, void *closure) {
     return PyLong_FromSize_t(self->f);
 }
 
-static PyGetSetDef Combinations_getset[] = {
+PyGetSetDef Combinations_getset[] = {
     {"s", (getter) Combinations_GetS, NULL, "combinations for s", NULL},
     {"p", (getter) Combinations_GetP, NULL, "combinations for p", NULL},
     {"d", (getter) Combinations_GetD, NULL, "combinations for d", NULL},

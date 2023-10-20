@@ -4,16 +4,17 @@
 
 #include <python3.11/Python.h>
 
-#include "possibility.c"
+#include "possibilities.h"
+#include "possibility.h"
 #include "combinations.c"
 
 
-typedef struct {
-    PyObject_HEAD
-    Possibility *s, *p, *d, *f;
-} Possibilities;
+//typedef struct {
+//    PyObject_HEAD
+//    Possibility *s, *p, *d, *f;
+//} Possibilities;
 
-static PyObject *Possibilities_New(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
+PyObject *Possibilities_New(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     Possibilities *self = (Possibilities*) type->tp_alloc(type, 0);
 
     self->s = (Possibility*) PossibilityType.tp_new(&PossibilityType, args, kwargs);
@@ -24,7 +25,7 @@ static PyObject *Possibilities_New(PyTypeObject *type, PyObject *args, PyObject 
     return (PyObject*) self;
 }
 
-static int Possibilities_Init(Possibilities *self, PyObject *args, PyObject *kwargs) {
+int Possibilities_Init(Possibilities *self, PyObject *args, PyObject *kwargs) {
     PyObject *electrons,
         *args_s = PyTuple_New(3),
         *args_p = PyTuple_New(3),
@@ -63,7 +64,7 @@ static int Possibilities_Init(Possibilities *self, PyObject *args, PyObject *kwa
     return 0;
 }
 
-static void Possibilities_Dealloc(Possibilities *self) {
+void Possibilities_Dealloc(Possibilities *self) {
     Py_XDECREF(self->s);
     Py_XDECREF(self->p);
     Py_XDECREF(self->d);
@@ -71,28 +72,28 @@ static void Possibilities_Dealloc(Possibilities *self) {
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
-static PyObject *Possibilities_GetS(Possibilities *self, void *closure) {
+PyObject *Possibilities_GetS(Possibilities *self, void *closure) {
     Py_INCREF(self->s);
     return (PyObject*) self->s;
 }
 
-static PyObject *Possibilities_GetP(Possibilities *self, void *closure) {
+PyObject *Possibilities_GetP(Possibilities *self, void *closure) {
     Py_INCREF(self->p);
     return (PyObject*) self->p;
 }
 
-static PyObject *Possibilities_GetD(Possibilities *self, void *closure) {
+PyObject *Possibilities_GetD(Possibilities *self, void *closure) {
     Py_INCREF(self->d);
     return (PyObject*) self->d;
 }
 
-static PyObject *Possibilities_GetF(Possibilities *self, void *closure) {
+PyObject *Possibilities_GetF(Possibilities *self, void *closure) {
     Py_INCREF(self->f);
     return (PyObject*) self->f;
 }
 
 
-static PyGetSetDef Possibilities_getset[] = {
+PyGetSetDef Possibilities_getset[] = {
     {"s", (getter) Possibilities_GetS, NULL, "possibilities of the orbiral S", NULL},
     {"p", (getter) Possibilities_GetP, NULL, "possibilities of the orbiral P", NULL},
     {"d", (getter) Possibilities_GetD, NULL, "possibilities of the orbiral D", NULL},
