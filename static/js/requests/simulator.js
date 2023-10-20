@@ -25,6 +25,15 @@ const pageNextButton = () => document.getElementById('page-button-next');
 const pageLabel = () => document.getElementById('page-label');
 
 
+function float_to_fraction(value) {
+    if (Math.floor(value) === value) {
+        return `${value}`;
+    } else {
+        return `<label class="fraction"><sup>${value * 2}</sup>&frasl;<sub>2</sub></label>`
+    }
+}
+
+
 function simulate() {
     simulateButton().disable;
     pagePrevButton().disabled = true;
@@ -89,7 +98,7 @@ function simulate() {
             const td = tr.insertCell();
             const htmlArray = [];
             for (let j = 0; j < data.terms[i][4].length; j++) {
-                htmlArray[j] = `<sup>${data.terms[i][4][j][0]}</sup>${data.terms[i][4][j][1]}<sub>${data.terms[i][4][j][2]}</sub>`;
+                htmlArray[j] = `<sup>${data.terms[i][4][j][0]}</sup>${data.terms[i][4][j][1]}<sub>${float_to_fraction(data.terms[i][4][j][2])}</sub>`;
             }
             td.innerHTML = htmlArray.join(', ');
         }
