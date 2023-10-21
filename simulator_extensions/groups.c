@@ -1,5 +1,8 @@
-#ifndef __GROUPS__
-#define __GROUPS__
+/**
+ * groups.c
+ *
+ * This file contains the implementations of the grouping functions.
+ */
 
 
 #include <python3.11/Python.h>
@@ -9,9 +12,19 @@
 #include "simulator.h"
 
 
+// marco to calculate the absolute value of a number
 #define ABS(expression) (((expression) >= 0) ? (expression) : ((expression) * (-1)))
 
 
+/**
+ * @fn      static short find_max_ml(Simulator *simulator)
+ *
+ * @brief   Static function that searches the maximal ml value in the simulator->compressed structure
+ *
+ * @param   simulator a pointer to a `Simulator` object
+ *
+ * @return  short:  The biggest ml value or -1 if no row left
+ */
 static short find_max_ml(Simulator *simulator) {
     short max_ml = -1;
     for (unsigned int i = 0; i < simulator->compressed->rowsCount / 2; ++i) {
@@ -32,6 +45,16 @@ static short find_max_ml(Simulator *simulator) {
     return max_ml;
 }
 
+/**
+ * @fn      static float find_max_ms_with_ml(Simulator *simulator, short abs_ml)
+ *
+ * @brief   Static function that searches the maximal ml value in the simulator->compressed structure
+ *
+ * @param   simulator a pointer to a `Simulator` object
+ * @param   abs_ml the ml value that is associated with the ms value
+ *
+ * @return  short:  The biggest ms value with matching ml value or -1 if no row left
+ */
 static float find_max_ms_with_ml(Simulator *simulator, short abs_ml) {
     float max_ms = -1;
 
@@ -56,6 +79,16 @@ static float find_max_ms_with_ml(Simulator *simulator, short abs_ml) {
     return max_ms;
 }
 
+/**
+ * @fn      static Terms *create_terms(unsigned short abs_ml, float abs_ms)
+ *
+ * @brief   Creator of `Terms`
+ *
+ * @param   abs_ml absolute value of ml
+ * @param   abs_ms absolute value of ns
+ *
+ * @return  Terms*: Pointer to the created `Terms`
+ */
 static Terms *create_terms(unsigned short abs_ml, float abs_ms) {
     Terms *terms = (Terms*) malloc(sizeof(Terms));
     if (terms == NULL)
@@ -95,7 +128,17 @@ static Terms *create_terms(unsigned short abs_ml, float abs_ms) {
     return terms;
 }
 
-static int create_group(Groups *groups, Simulator *simulator, unsigned int combs) {
+/**
+ * @fn      static int create_group(Groups *groups, Simulator *simulator, unsigned int combs)
+ *
+ * @brief   Creates a group and adds it to the `groups`
+ *
+ * @param   groups pointer to a `Groups` instance
+ * @param   simulator pointer to a `Simulator` instance
+ *
+ * @return  0 if success else a value from 1 to 5
+ */
+static int create_group(Groups *groups, Simulator *simulator) {
     short max_ml = find_max_ml(simulator);
     if (max_ml == -1)
         return 1;
@@ -168,6 +211,15 @@ static int create_group(Groups *groups, Simulator *simulator, unsigned int combs
     return 0;
 }
 
+/**
+ * @fn      static PyObject *group_to_tuple(Group *group)
+ *
+ * @brief   Converter that converts a group to a tuple of values
+ *
+ * @param   group a pointer to a `Group`
+ *
+ * @return  PyObject*:  A tuple containing the group
+ */
 static PyObject *group_to_tuple(Group *group) {
     PyObject *tuple = PyTuple_New(5), *terms = PyTuple_New(group->terms->term_count);
 
@@ -211,13 +263,8 @@ int Groups_Init(Groups *self, PyObject *args, PyObject *kwargs) {
 
     self->group_count = 0;
 
-    unsigned int combs = simulator->combinations->s
-            * simulator->combinations->p
-            * simulator->combinations->d
-            * simulator->combinations->f;
-
     int result;
-    while ((result = create_group(self, simulator, combs)) == 0);
+    while ((result = create_group(self, simulator)) == 0);
 
 
     if (result) {
@@ -321,6 +368,3 @@ PyTypeObject GroupsType = {
     .tp_as_mapping = &Groups_mapping_methods,
     .tp_as_sequence = &Groups_sequence_methods,
 };
-
-
-#endif // __GROUPS__
