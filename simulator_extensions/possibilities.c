@@ -43,7 +43,7 @@ int Possibilities_Init(Possibilities *self, PyObject *args, PyObject *kwargs) {
     if (PyArg_ParseTuple(args, "O!O!", &PyTuple_Type, &electrons, &CombinationsType, &combinations)) {
         // if the type check failed, NULL is returned
         if (electrons == NULL || combinations == NULL)
-            return NULL;
+            return 1;
 
         // parsing the s, p, d, f values to variables
         PyArg_ParseTuple(electrons, "iiii", &s, &p, &d, &f);
