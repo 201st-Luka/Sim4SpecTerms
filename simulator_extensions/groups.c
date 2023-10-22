@@ -90,12 +90,12 @@ static float find_max_ms_with_ml(Simulator *simulator, short abs_ml) {
  * @return  Terms*: Pointer to the created `Terms`
  */
 static Terms *create_terms(unsigned short abs_ml, float abs_ms) {
+    // allocate memory for the Terms structure and return NULL if the allocation failed
     Terms *terms = (Terms*) malloc(sizeof(Terms));
     if (terms == NULL)
         return NULL;
 
-    unsigned short sup = (unsigned short) (2 * abs_ms) + 1;
-    float min_sub = ABS(abs_ml - abs_ms), max_sub = abs_ml + abs_ms;
+    // setting the term character
     char *x;
     switch (abs_ml) {
         case 0:
@@ -112,6 +112,11 @@ static Terms *create_terms(unsigned short abs_ml, float abs_ms) {
             break;
     }
 
+    // calculate the values that are written around the term letter
+    unsigned short sup = (unsigned short) (2 * abs_ms) + 1;
+    float min_sub = ABS(abs_ml - abs_ms), max_sub = abs_ml + abs_ms;
+
+    // allocating memory for the terms and return NULL on failure
     terms->term_count = (unsigned short) (max_sub - min_sub) + 1;
     terms->terms = (Term*) malloc(sizeof(Term) * terms->term_count);
     if (terms->terms == NULL) {
@@ -119,6 +124,7 @@ static Terms *create_terms(unsigned short abs_ml, float abs_ms) {
         return NULL;
     }
 
+    // building the different terms
     for (unsigned short i = 0; i < terms->term_count; ++i) {
         terms->terms[i].sup = sup;
         terms->terms[i].x = x;
@@ -139,75 +145,92 @@ static Terms *create_terms(unsigned short abs_ml, float abs_ms) {
  * @return  0 if success else a value from 1 to 5
  */
 static int create_group(Groups *groups, Simulator *simulator) {
+    // finding the maximal ml value of the simulator and returning 1 if nothing was found
     short max_ml = find_max_ml(simulator);
     if (max_ml == -1)
         return 1;
 
+    // finding the maximal ms value that has the previously calculated ml value and return 2 if nothing was found
     float max_ms = find_max_ms_with_ml(simulator, max_ml);
     if (max_ms == -1.0)
         return 2;
 
     if (groups->groups == NULL) {
+        // if groups->groups == NULL, no group was created and memory must be allocated (returns 3 on failure)
         groups->groups = (Group*) malloc(sizeof(Group));
         groups->group_count = 1;
-
         if (groups->groups == NULL)
             return 3;
 
+        // setting the first group's values
         groups->groups[0].count = 1;
         groups->groups[0].id = 1;
         groups->groups[0].abs_ml = max_ml;
         groups->groups[0].abs_ms = max_ms;
         groups->groups[0].terms = create_terms(max_ml, max_ms);
 
+        // return 5 if the term creation failed
         if (groups->groups[0].terms == NULL)
             return 5;
 
     } else {
+        // searching the ml and ms values in the groups
         short found = 0;
         for (unsigned int i = 0; i < groups->group_count && !found; ++i) {
             if (groups->groups[i].abs_ml == max_ml
-                && groups->groups[i].abs_ms == max_ms) {
+                    && groups->groups[i].abs_ms == max_ms) {
+                // if the ml and ms values are found, the group count increments
                 ++groups->groups[i].count;
                 found = 1;
             }
         }
 
         if (!found) {
+            // if the ml and ms values are not found, the groups are re-allocated and 4 is returned on failure
             Group *tmp_ptr = (Group*) realloc(groups->groups, sizeof(Group) * ++groups->group_count);
             if (tmp_ptr == NULL)
                 return 4;
 
             groups->groups = tmp_ptr;
 
+            // setting the group values for the created group
             groups->groups[groups->group_count - 1].count = 1;
             groups->groups[groups->group_count - 1].id = groups->group_count;
             groups->groups[groups->group_count - 1].abs_ml = max_ml;
             groups->groups[groups->group_count - 1].abs_ms = max_ms;
             groups->groups[groups->group_count - 1].terms = create_terms(max_ml, max_ms);
 
+            // returning 5 if the term creation failed
             if (groups->groups[groups->group_count - 1].terms == NULL)
                 return 5;
         }
     }
 
+    // decrementing the count of used rows in the compressed simulator
     for (short i_ml = -max_ml; i_ml <= max_ml; ++i_ml) {
+        // from -max_ml to max_ml
         for (short i_ms = (short) (-max_ms * 2); i_ms <= (short) (max_ms * 2); ++i_ms) {
+            // from -max_ms to max_ms (float iteration is awful so the float is converted to a short)
             for (unsigned short i = 0; i < simulator->compressed->rowsCount / 2; ++i) {
+                // for each compressed simulator row
                 if (simulator->compressed->rows[i].count
-                    && simulator->compressed->rows[i].ml == i_ml
-                    && simulator->compressed->rows[i].ms == ((float) i_ms) / 2) {
+                        && simulator->compressed->rows[i].ml == i_ml
+                        && simulator->compressed->rows[i].ms == ((float) i_ms) / 2) {
+                    // if the values match, the row counter decrements by 1
                     --simulator->compressed->rows[i].count;
                     break;
                 } else if (simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].count
                            && simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ml == i_ml
                            && simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].ms == ((float) i_ms) / 2) {
+                    // if the previous `if` found nothing, this if checks from the end of the array (to use less
+                    // iterations and reducing the theoretical complexity of the algorithm
                     --simulator->compressed->rows[simulator->compressed->rowsCount - 1 - i].count;
                     break;
                 }
             }
         }
     }
+
     return 0;
 }
 
@@ -221,8 +244,10 @@ static int create_group(Groups *groups, Simulator *simulator) {
  * @return  PyObject*:  A tuple containing the group
  */
 static PyObject *group_to_tuple(Group *group) {
+    // creating tuple object for as return value and for the terms
     PyObject *tuple = PyTuple_New(5), *terms = PyTuple_New(group->terms->term_count);
 
+    // setting the term items in the terms tuple
     for (unsigned short i = 0; i < group->terms->term_count; ++i) {
         PyObject *term = PyTuple_New(3);
         PyTuple_SET_ITEM(term, 0, PyLong_FromSsize_t((unsigned int) group->terms->terms[i].sup));
@@ -232,14 +257,17 @@ static PyObject *group_to_tuple(Group *group) {
         PyTuple_SET_ITEM(terms, i, term);
     }
 
+    // setting the group items in the final tuple
     PyTuple_SET_ITEM(tuple, 0, PyLong_FromSize_t(group->id));
     PyTuple_SET_ITEM(tuple, 1, PyLong_FromSsize_t((int) group->abs_ml));
     PyTuple_SET_ITEM(tuple, 2, PyFloat_FromDouble((double) group->abs_ms));
     PyTuple_SET_ITEM(tuple, 3, PyLong_FromSize_t(group->count));
     PyTuple_SET_ITEM(tuple, 4, terms);
 
+    // incrementing the reference for the Python reference counter
     Py_INCREF(tuple);
 
+    // returning the result
     return tuple;
 }
 

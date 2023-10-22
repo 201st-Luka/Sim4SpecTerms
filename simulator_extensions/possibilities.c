@@ -17,8 +17,10 @@
 
 
 PyObject *Possibilities_New(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
+    // allocating memory
     Possibilities *self = (Possibilities*) type->tp_alloc(type, 0);
 
+    // calling new methods of sub objects
     self->s = (Possibility*) PossibilityType.tp_new(&PossibilityType, args, kwargs);
     self->p = (Possibility*) PossibilityType.tp_new(&PossibilityType, args, kwargs);
     self->d = (Possibility*) PossibilityType.tp_new(&PossibilityType, args, kwargs);
@@ -28,20 +30,29 @@ PyObject *Possibilities_New(PyTypeObject *type, PyObject *args, PyObject *kwargs
 }
 
 int Possibilities_Init(Possibilities *self, PyObject *args, PyObject *kwargs) {
+    // creating new PyObjects for the electrons and the
     PyObject *electrons,
         *args_s = PyTuple_New(3),
         *args_p = PyTuple_New(3),
         *args_d = PyTuple_New(3),
         *args_f = PyTuple_New(3);
+
+    // parsing the arguments
     Combinations *combinations;
     unsigned int s, p, d, f;
-    if (PyArg_ParseTuple(args, "OO", &electrons, &combinations)) {
+    if (PyArg_ParseTuple(args, "O!O!", &PyTuple_Type, &electrons, &CombinationsType, &combinations)) {
+        // if the type check failed, NULL is returned
+        if (electrons == NULL || combinations == NULL)
+            return NULL;
+
+        // parsing the s, p, d, f values to variables
         PyArg_ParseTuple(electrons, "iiii", &s, &p, &d, &f);
     } else {
         PyErr_SetString(PyExc_TypeError, "`tuple(int, int, int, int), Combinations()´ must be provided.");
             return 1;
     }
 
+    // creating tuples to initialize the possibilities
     PyTuple_SET_ITEM(args_s, 0, PyLong_FromSize_t(s));
     PyTuple_SET_ITEM(args_s, 1, PyLong_FromSize_t(2));
     PyTuple_SET_ITEM(args_s, 2, PyLong_FromSize_t(combinations->s));
@@ -58,6 +69,7 @@ int Possibilities_Init(Possibilities *self, PyObject *args, PyObject *kwargs) {
     PyTuple_SET_ITEM(args_f, 1, PyLong_FromSize_t(14));
     PyTuple_SET_ITEM(args_f, 2, PyLong_FromSize_t(combinations->f));
 
+    // initializing the possibilities
     PossibilityType.tp_init((PyObject*) self->s, args_s, kwargs);
     PossibilityType.tp_init((PyObject*) self->p, args_p, kwargs);
     PossibilityType.tp_init((PyObject*) self->d, args_d, kwargs);
@@ -67,10 +79,14 @@ int Possibilities_Init(Possibilities *self, PyObject *args, PyObject *kwargs) {
 }
 
 void Possibilities_Dealloc(Possibilities *self) {
+    // decrementing the references of s, p, d, f (they are going to be freed by the Python interpreter if no reference
+    // is left over)
     Py_XDECREF(self->s);
     Py_XDECREF(self->p);
     Py_XDECREF(self->d);
     Py_XDECREF(self->f);
+
+    // freeing the possibilities object
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
 

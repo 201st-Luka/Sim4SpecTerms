@@ -37,8 +37,8 @@
  * @param   perm the current permutation
  * @param   ones count of 1 that are binary distributed on `length` slots
  * @param   length number of slots
- * @param   i current index of permutations
- * @param   result_len length of the result array
+ * @param   i current number of 1 that have been used in the permutation
+ * @param   result_len current index of permutations
  */
 static void permute(unsigned short *result,
                     unsigned short perm,
@@ -47,10 +47,18 @@ static void permute(unsigned short *result,
                     unsigned int i,
                     unsigned int *result_len) {
     if (ones <= 0) {
+        // no more ones can be added to the permutation, so the permutation is inserted to the result array
         result[*result_len] = perm << (length - i);
+
+        // incrementing result length so that the next permutation is inserted one place after another
         (*result_len)++;
     } else if (i < length) {
+        // permutation is not finished, permutation continues
+
+        // creating a permutation that has a 1 more
         permute(result, (perm << 1) + 1, ones - 1, length, i + 1, result_len);
+
+        // if possible, creating a permutation with a 0 more
         if ((length - i) > ones) permute(result, perm << 1, ones, length, i + 1, result_len);
     }
 }
@@ -100,12 +108,14 @@ PyObject *Possibility_New(PyTypeObject *type, PyObject *args, PyObject *kwargs) 
 }
 
 int Possibility_Init(Possibility *self, PyObject *args, PyObject *kwargs) {
+    // parsing the arguments
     if (!PyArg_ParseTuple(args, "iii", &self->electrons, &self->max_electrons, &self->combinations)) {
         PyErr_SetString(PyExc_ValueError, "Invalid argument format");
         Py_DECREF(self);
         return 1;
     }
 
+    // allocating memory for the permutations and returning 1 on failure
     self->poss = (unsigned short*) malloc(sizeof(unsigned short) * self->combinations);
     if (self->poss == NULL) {
         PyErr_NoMemory();
@@ -113,6 +123,7 @@ int Possibility_Init(Possibility *self, PyObject *args, PyObject *kwargs) {
         return 1;
     }
 
+    // creating the permutations
     generate_permutation(self->electrons, self->max_electrons, self->poss);
     return 0;
 }
