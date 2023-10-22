@@ -1,3 +1,10 @@
+/**
+ * simulator.c
+ *
+ * This file contains the implementation of the `Simulator` object.
+ */
+
+
 #ifndef __SIMULATOR__
 #define __SIMULATOR__
 
@@ -15,6 +22,15 @@
 #define TOTAL_ORBITALS 32
 
 
+/**
+ * @fn      static int generate_rows(Simulator* self)
+ *
+ * @brief   Helper function to generate the simulator rows and compressed simulator
+ *
+ * @param   self pointer to a `Simulator` instance
+ *
+ * @return  int:    0 if succeeded else 1
+ */
 static int generate_rows(Simulator* self) {
     unsigned int all_combs = self->combinations->s * self->combinations->p * self->combinations->d * self->combinations->f,
             d_combs = self->combinations->f * self->combinations->d,
@@ -81,6 +97,15 @@ static int generate_rows(Simulator* self) {
     return 0;
 }
 
+/**
+ * @fn      static PyObject *row_to_arrow_tuple(SimulatorRow *row)
+ *
+ * @brief   Helper function that converts a `SimulatorRow` into a tuple of harpoon arrows
+ *
+ * @param   row the `SimulatorRow` that needs to be converted
+ *
+ * @return  PyObject*:  Tuple containing the harpoon arrows and Ml and Ms values
+ */
 static PyObject *row_to_arrow_tuple(SimulatorRow *row) {
     PyObject *tuple = PyTuple_New((TOTAL_ORBITALS / 2) + 2);
     unsigned int value = row->orbitals;

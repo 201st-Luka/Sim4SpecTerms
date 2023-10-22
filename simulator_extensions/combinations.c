@@ -2,9 +2,6 @@
  * combinations.c
  *
  * This file contains the implementation of the combination object.
- *
- * @author  201st-Luka
- * @date    21 october 2023
  */
 
 

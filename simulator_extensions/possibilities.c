@@ -1,3 +1,10 @@
+/**
+ * possibilities.c
+ *
+ * This file contains the implementation of the `Possibilities` object
+ */
+
+
 #ifndef __POSSIBILITIES__
 #define __POSSIBILITIES__
 

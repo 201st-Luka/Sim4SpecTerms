@@ -1,3 +1,10 @@
+/**
+ * possibility.c
+ *
+ * This file contains the implementation of the `Possibility` object.
+ */
+
+
 #ifndef __POSSIBILITY__
 #define __POSSIBILITY__
 
@@ -14,6 +21,25 @@
 #define ARROW_BOTH "\u296E"
 
 
+/**
+ * @fn      static void permute(
+ *              unsigned short *result,
+ *              unsigned short perm,
+ *              unsigned int ones,
+ *              unsigned int length,
+ *              unsigned int i,
+ *              unsigned int *result_len
+ *          )
+ *
+ * @brief   Helper function to generate the permutations
+ *
+ * @param   result pointer to the unsigned short result array to store the permutations
+ * @param   perm the current permutation
+ * @param   ones count of 1 that are binary distributed on `length` slots
+ * @param   length number of slots
+ * @param   i current index of permutations
+ * @param   result_len length of the result array
+ */
 static void permute(unsigned short *result,
                     unsigned short perm,
                     unsigned int ones,
@@ -29,11 +55,34 @@ static void permute(unsigned short *result,
     }
 }
 
+/**
+ * @fn      static void generate_permutation(
+ *              unsigned int ones,
+ *              unsigned int length,
+ *              unsigned short *result
+ *          )
+ *
+ * @brief   Helper function to start the permutation generation
+ *
+ * @param   ones count of 1 that are binary distributed on `length` slots
+ * @param   length number of slots
+ * @param   result pointer to the unsigned short result array to store the permutations
+ */
 static void generate_permutation(unsigned int ones, unsigned int length, unsigned short *result) {
     unsigned int result_len = 0;
     permute(result, 0, ones, length, 0, &result_len);
 }
 
+/**
+ * @fn      static PyObject *int_to_arrow_tuple(unsigned short value, unsigned int len)
+ *
+ * @brief   Helper function to create a tuple containing a permutation
+ *
+ * @param   value the value of the permutation
+ * @param   len the length of the permutation (number of bits)
+ *
+ * @return  PyObject*:  The tuple containing the permutation
+ */
 static PyObject *int_to_arrow_tuple(unsigned short value, unsigned int len) {
     PyObject *tuple = PyTuple_New(len);
     for (unsigned short i = 1; i <= len; ++i) {
