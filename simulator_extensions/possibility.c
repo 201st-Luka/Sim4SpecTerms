@@ -110,7 +110,6 @@ PyObject *Possibility_New(PyTypeObject *type, PyObject *args, PyObject *kwargs) 
 int Possibility_Init(Possibility *self, PyObject *args, PyObject *kwargs) {
     // parsing the arguments
     if (!PyArg_ParseTuple(args, "iii", &self->electrons, &self->max_electrons, &self->combinations)) {
-        PyErr_SetString(PyExc_ValueError, "Invalid argument format");
         Py_DECREF(self);
         return 1;
     }
