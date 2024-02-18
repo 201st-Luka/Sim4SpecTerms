@@ -4,9 +4,11 @@ app.py file
 This file contains the main part of the Sim4SpecTerms website. It contains the Flask app and its routes.
 """
 
+from math import comb
 
 from flask import Flask, render_template, request, jsonify
-import simulator
+
+from simulator import Configurations, Groups
 
 
 app = Flask(__name__)
@@ -43,18 +45,19 @@ def api_simulator():
     s, p, d, f, range_start, range_end = (int(data['s']), int(data['p']), int(data['d']), int(data['f']),
                                           int(data['range_start']), int(data['range_end']))
 
-    # simulating and building the terms
-    sim = simulator.Simulator(s, p, d, f)
-    terms = simulator.Groups(sim)
+    # simulating and building the terms/groups
+    configurations = Configurations(s, p, d, f)
+    groups = Groups(configurations)
 
     return jsonify(
-        s=sim.combinations.s, p=sim.combinations.p, d=sim.combinations.d, f=sim.combinations.f,
+        s=comb(2, s), p=comb(6, p), d=comb(10, d), f=comb(14, f),
+        total_combs=len(configurations),
         range_start=range_start, range_end=range_end,
-        rows=sim[range_start:range_end],
-        rows_len=len(sim),
-        terms=list(terms)
+        rows=[conf.to_list() for conf in configurations[range_start:range_end]],
+        rows_len=len(configurations),
+        terms=[term.to_list() for term in groups.terms],
     )
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(threaded=True)

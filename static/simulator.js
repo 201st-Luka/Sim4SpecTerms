@@ -70,20 +70,18 @@ function simulate() {
     })
     .then(response => response.json())
     .then(data => {
-        const total_combs = data.s * data.p * data.d * data.f;
-
         // displaying the combinations
         combinationsS.innerText = `${data.s}`;
         combinationsP.innerText = `${data.p}`;
         combinationsD.innerText = `${data.d}`;
         combinationsF.innerText = `${data.f}`;
-        combinationsTotal.innerText = `${total_combs}`;
+        combinationsTotal.innerText = `${data.total_combs}`;
 
         // enabling the page buttons if possible (if the next or previous page is not out of range)
         if (page > 1) {
             pagePrevButton.disabled = false;
         }
-        if (rowCount * page < total_combs) {
+        if (rowCount * page < data.total_combs) {
             pageNextButton.disabled = false;
         }
 
@@ -114,14 +112,16 @@ function simulate() {
         // displaying the new terms (same code as for the configuration)
         for (let i = 0; i < data.terms.length; ++i) {
             const tr = termsTable.insertRow();
-            for (let j = 0; j < 4; ++j) {
+            tr.insertCell().innerText = `${i + 1}`;
+
+            for (let j = 0; j < 3; ++j) {
                 const td = tr.insertCell();
                 td.innerText = `${data.terms[i][j]}`;
             }
             const td = tr.insertCell();
             const htmlArray = [];
-            for (let j = 0; j < data.terms[i][4].length; j++) {
-                htmlArray[j] = `<sup>${data.terms[i][4][j][0]}</sup>${data.terms[i][4][j][1]}<sub>${float_to_fraction(data.terms[i][4][j][2])}</sub>`;
+            for (let j = 0; j < data.terms[i][5].length; j++) {
+                htmlArray[j] = `<sup>${data.terms[i][3]}</sup>${data.terms[i][4]}<sub>${float_to_fraction(data.terms[i][5][j])}</sub>`;
             }
             td.innerHTML = htmlArray.join(', ');
         }

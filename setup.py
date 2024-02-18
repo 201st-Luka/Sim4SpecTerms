@@ -9,7 +9,8 @@ simulator_extensions = Extension(
         'simulator_extensions/possibilities.c',
         'simulator_extensions/possibility.c',
         'simulator_extensions/simulator.c',
-    ]
+    ],
+    extra_compile_args=["-g"]
 )
 
 setup(
