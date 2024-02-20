@@ -1,3 +1,7 @@
+"""
+This module contains the Configuration and Configurations classes.
+"""
+
 import math
 from typing import Iterator
 
@@ -10,6 +14,9 @@ ARROW_BOTH = "\u296E"
 
 
 class Configuration:
+    """
+    The Configuration class is used to represent a configuration of a given electron configuration at a specific state.
+    """
     def __init__(self, s: SubShell, p: SubShell, d: SubShell, f: SubShell, ms: float = None, ml: int = None):
         """
         The constructor of the Possibility class.
@@ -35,14 +42,39 @@ class Configuration:
         """int: The ml value of the configuration."""
 
     def __calculate_ms_ml(self, subshell: int, start: int, multiplier: int):
+        """
+        Calculate the ms and ml values of the configuration.
+
+        Args:
+            subshell (int):
+                The subshell to calculate the ms and ml values.
+
+            start (int):
+                The start bit of the subshell.
+
+            multiplier (int):
+                The multiplier for the ml value.
+        """
         for i in range(start, -2, -2):
+            # Get the electron at position i.
             bit_i = (subshell & (1 << i)) >> i
+            # Get the electron at position i + 1.
             bit_i_plus_1 = (subshell & (1 << (i + 1))) >> (i + 1)
+
             self.ms += bit_i_plus_1 - bit_i
             self.ml += (bit_i_plus_1 + bit_i) * (multiplier - (i >> 1))
 
     @property
     def configuration(self) -> int:
+        """
+        Get the configuration of the atom.
+
+        Returns:
+            int: The configuration of the atom.
+            Note that the electrons are stored in bits from left to right: 2 s, 6 p, 10 d, 14 f in the following format:
+            ssppppddddddffffffffffffff, 32 electrons in total. The first electron of each subshell is the spin up
+            electron followed by the spin down electron (second electron).
+        """
         return (
                 ((
                          ((
@@ -55,6 +87,12 @@ class Configuration:
         return f"<Configuration {self.ms=}, {self.ml=}>"
 
     def __shell_to_arrows(self) -> list[str]:
+        """
+        Convert the configuration to arrows.
+
+        Returns:
+            list[str]: The list of arrows.
+        """
         bits_to_arrow = {
             0: "",
             1: ARROW_DOWN,
@@ -71,10 +109,19 @@ class Configuration:
         ]
 
     def to_list(self) -> list:
+        """
+        Convert the configuration to a list.
+
+        Returns:
+            list: The list of arrows and the ml and ms value.
+        """
         return self.__shell_to_arrows() + [self.ml, self.ms]
 
 
 class Configurations:
+    """
+    The Configurations class is used to represent all the possible configurations of a given electron configuration.
+    """
     def __init__(self, s: int, p: int, d: int, f: int):
         """
         The constructor of the Possibility class.
@@ -91,8 +138,6 @@ class Configurations:
 
             f (int):
                 The f subshell electron count.
-            positive_ms_ml (bool):
-                Whether to include only positive ms and ml values on iterations.
         """
         self.__electrons = (s, p, d, f)
         """tuple: The number of electrons in each subshell."""
@@ -103,9 +148,16 @@ class Configurations:
                                SubShells(d, 10), SubShells(f, 14))
         """tuple: The possibilities for each subshell."""
         self.positive_ms_ml = False
-        """bool: Whether to include only positive ms and ml values on iterations."""
+        """bool: Whether to include only positive ms and ml values on iterations (default: False). This variable is 
+        used to speed up the group creation process."""
 
     def __combinations_iterator(self) -> Iterator[Configuration]:
+        """
+        Iterate over all the possible configurations.
+
+        Returns:
+            Iterator[Configuration]: The iterator of configurations.
+        """
         for s in self.__combinations[0].possibilities:
             for p in self.__combinations[1].possibilities:
                 sp_ms, sp_ml = s.ms + p.ms, s.ml + p.ml
@@ -115,6 +167,15 @@ class Configurations:
                         yield Configuration(s, p, d, f, spd_ms + f.ms, spd_ml + f.ml)
 
     def __combinations_iterator_positive_ms_ml(self) -> Iterator[Configuration]:
+        """
+        Iterate over all the possible configurations with positive ms and ml values.
+
+        Notes:
+            The returned generator is used to speed up the group creation process.
+
+        Returns:
+            Iterator[Configuration]: The iterator of configurations.
+        """
         for s in self.__combinations[0].possibilities:
             for p in self.__combinations[1].possibilities:
                 sp_ms, sp_ml = s.ms + p.ms, s.ml + p.ml
@@ -125,6 +186,17 @@ class Configurations:
                             yield Configuration(s, p, d, f, ms, ml)
 
     def __get_single_configuration(self, index: int) -> Configuration:
+        """
+        Get a single configuration from the index.
+
+        Args:
+            index:
+                The index of the configuration.
+
+        Returns:
+            Configuration: The configuration.
+        """
+        # getting the subshell possibilities from the index by extracting the indexes of the possibilities subshells
         s = self.__combinations[0].possibilities[
             index // (self.__combinations_count[1] * self.__combinations_count[2] * self.__combinations_count[3])
             ]
@@ -141,6 +213,15 @@ class Configurations:
         return Configuration(s, p, d, f)
 
     def __get_slice_configurations(self, index: slice) -> list[Configuration]:
+        """
+        Get a list of configurations from the slice index.
+
+        Args:
+            index:
+                The slice index.
+        Returns:
+            list[Configuration]: The list of configurations.
+        """
         return [self.__get_single_configuration(i) for i in range(*index.indices(len(self)))]
 
     def __getitem__(self, index: int | slice) -> Configuration | list[Configuration]:
