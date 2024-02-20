@@ -1,20 +1,22 @@
+from collections import Counter
+
 from .configuration import Configurations
 from .utils import float_range, float_range_equal
 
 
 class Term:
-    def __init__(self, ms: float, ml: int, count: int = 1):
-        self.__term_letter: str
-        self.__sup: int
-        self.__sub: list[float]
+    def __init__(self, s: float, l: int, count: int = 1):
+        self.term_letter: str
+        self.sup: int
+        self.sub: list[float]
 
-        self.__count = count
-        self.__ms = ms
-        self.__ml = ml
+        self.count = count
+        self.s = s
+        self.l = l
 
-        self.__build_term(ms, ml)
+        self.__build_term(s, l)
 
-    def __build_term(self, ms: float, ml: int):
+    def __build_term(self, s: float, l: int):
         ml_matcher = {
             0: "S",
             1: "P",
@@ -39,72 +41,40 @@ class Term:
             20: "Z",
         }
 
-        self.__term_letter = ml_matcher[ml]
+        self.term_letter = ml_matcher[l]
 
-        self.__sup = int(2 * ms) + 1
-        self.__sub = [ml_ for ml_ in float_range_equal(ml + ms, abs(ml - ms))]
-
-    @property
-    def term(self) -> str:
-        return self.__term_letter
-
-    @property
-    def sup(self) -> int:
-        return self.__sup
-
-    @property
-    def sub(self) -> list[float]:
-        return self.__sub
-
-    @property
-    def count(self) -> int:
-        return self.__count
-
-    @property
-    def ms(self) -> float:
-        return self.__ms
-
-    @property
-    def ml(self) -> int:
-        return self.__ml
+        self.sup = int(2 * s) + 1
+        self.sub = [l_ for l_ in float_range_equal(l + s, abs(l - s))]
 
     def __repr__(self) -> str:
-        return f"<Term {self.sup=}, {self.term=}, {self.sub=}>"
+        return f"<Term {self.sup=}, {self.term_letter=}, {self.sub=}>"
 
     def to_list(self) -> list:
-        return [self.__ml, self.__ms, self.__count, self.__sup, self.__term_letter, self.__sub]
+        return [self.l, self.s, self.count, self.sup, self.term_letter, self.sub]
 
 
 class Groups:
     def __init__(self, configurations: Configurations):
-        self.__max_ms, self.__max_ml = self.__find_max(configurations)
+        configurations.positive_ms_ml = True
 
         self.__groups = self.__group(configurations)
-        self.__reduced_groups: dict | None = None
-
+        self.__max_ms, self.__max_ml = self.__find_max()
         self.__terms = self.__calculate_terms()
 
-    def __group(self, configurations: Configurations) -> dict[tuple[float, int], int]:
-        groups = {(ms, ml): 0
-                  for ms in float_range(self.__max_ms + 1)
-                  for ml in range(self.__max_ml + 1)
-                  }
-
-        for configuration in configurations:
-            if configuration.ml >= 0 and configuration.ms >= 0:
-                groups[(configuration.ms, configuration.ml)] += 1
-
-        return groups
+        configurations.positive_ms_ml = False
 
     @staticmethod
-    def __find_max(configurations: Configurations) -> tuple[float, int]:
+    def __group(configurations: Configurations) -> dict[tuple[float, int], int]:
+        return Counter((conf.ms, conf.ml) for conf in configurations if conf.ml >= 0 and conf.ms >= 0)
+
+    def __find_max(self) -> tuple[float, int]:
         max_ms, max_ml = 0, 0
 
-        for configuration in configurations:
-            if configuration.ms > max_ms:
-                max_ms = configuration.ms
-            if configuration.ml > max_ml:
-                max_ml = configuration.ml
+        for ms, ml in self.__groups.keys():
+            if ms > max_ms:
+                max_ms = ms
+            if ml > max_ml:
+                max_ml = ml
 
         return max_ms, max_ml
 
@@ -135,15 +105,10 @@ class Groups:
 
     def to_matrix(self) -> list[list[int]]:
         return [
-            [self.__groups[(ms, ml)] for ml in range(self.__max_ml + 1)]
+            [self.__groups[(ms, ml)] if (ms, ml) in self.__groups else 0
+             for ml in range(self.__max_ml + 1)]
             for ms in float_range(self.__max_ms + 1)
         ]
-
-    @property
-    def reduced_groups(self):
-        if self.__reduced_groups is None:
-            self.__reduced_groups = {key: value for key, value in self.__groups.items() if value > 0}
-        return self.__reduced_groups
 
     @property
     def terms(self):
@@ -151,4 +116,3 @@ class Groups:
 
     def __repr__(self) -> str:
         return f"<Groups {self.__groups=}>"
-

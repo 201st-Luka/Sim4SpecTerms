@@ -11,9 +11,9 @@ class SubShell:
         """int: The shell of the subshell."""
         self.__size = size
         """int: The size of the subshell."""
-        self.__ms: float = 0
+        self.ms: float = 0
         """float: The ms value of the subshell."""
-        self.__ml: int = 0
+        self.ml: int = 0
         """int: The ml value of the subshell."""
         self.__calculate_ms_ml(size - 2, ((size // 2) - 1) // 2)
 
@@ -21,9 +21,9 @@ class SubShell:
         for i in range(start, -2, -2):
             bit_i = (self.__shell & (1 << i)) >> i
             bit_i_plus_1 = (self.__shell & (1 << (i + 1))) >> (i + 1)
-            self.__ms += bit_i_plus_1 - bit_i
-            self.__ml += (bit_i_plus_1 + bit_i) * (multiplier - (i >> 1))
-        self.__ms /= 2
+            self.ms += bit_i_plus_1 - bit_i
+            self.ml += (bit_i_plus_1 + bit_i) * (multiplier - (i >> 1))
+        self.ms /= 2
 
     @property
     def shell(self) -> int:
@@ -32,14 +32,6 @@ class SubShell:
     @property
     def size(self) -> int:
         return self.__size
-
-    @property
-    def ms(self) -> float:
-        return self.__ms
-
-    @property
-    def ml(self) -> int:
-        return self.__ml
 
 
 class SubShells:
