@@ -62,23 +62,19 @@ class Configuration:
         return f"<Configuration {self.ms=}, {self.ml=}>"
 
     def __shell_to_arrows(self) -> list[str]:
-        def bits_to_arrow(bit: int) -> str:
-            match bit:
-                case 1:
-                    return ARROW_DOWN
-                case 2:
-                    return ARROW_UP
-                case 3:
-                    return ARROW_BOTH
-                case _:
-                    return ""
+        bits_to_arrow = {
+            0: "",
+            1: ARROW_DOWN,
+            2: ARROW_UP,
+            3: ARROW_BOTH,
+        }
 
-        return [bits_to_arrow(self.__configuration[0].shell)] + [
-            bits_to_arrow((self.__configuration[1].shell & (3 << i)) >> i) for i in range(0, 6, 2)
+        return [bits_to_arrow[self.__configuration[0].shell]] + [
+            bits_to_arrow[(self.__configuration[1].shell & (3 << i)) >> i] for i in range(0, 6, 2)[::-1]
         ] + [
-            bits_to_arrow((self.__configuration[2].shell & (3 << i)) >> i) for i in range(0, 10, 2)
+            bits_to_arrow[(self.__configuration[2].shell & (3 << i)) >> i] for i in range(0, 10, 2)[::-1]
         ] + [
-            bits_to_arrow((self.__configuration[3].shell & (3 << i)) >> i) for i in range(0, 14, 2)
+            bits_to_arrow[(self.__configuration[3].shell & (3 << i)) >> i] for i in range(0, 14, 2)[::-1]
         ]
 
     def to_list(self) -> list:

@@ -15,15 +15,31 @@ class Term:
         self.__build_term(ms, ml)
 
     def __build_term(self, ms: float, ml: int):
-        match ml:
-            case 0:
-                self.__term_letter = "S"
-            case 1:
-                self.__term_letter = "P"
-            case 2:
-                self.__term_letter = "D"
-            case _:
-                self.__term_letter = "F"
+        ml_matcher = {
+            0: "S",
+            1: "P",
+            2: "D",
+            3: "F",
+            4: "G",
+            5: "H",
+            6: "I",
+            7: "K",
+            8: "L",
+            9: "M",
+            10: "N",
+            11: "O",
+            12: "Q",
+            13: "R",
+            14: "T",
+            15: "U",
+            16: "V",
+            17: "W",
+            18: "X",
+            19: "Y",
+            20: "Z",
+        }
+
+        self.__term_letter = ml_matcher[ml]
 
         self.__sup = int(2 * ms) + 1
         self.__sub = [ml_ for ml_ in float_range_equal(ml + ms, abs(ml - ms))]
