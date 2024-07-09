@@ -1,2 +1,4 @@
-flask~=2.3.3
+flask
+flask-wtf
+bootstrap-flask
 waitress

@@ -1,0 +1,18 @@
+.sim-span {
+    width: 35px
+}
+
+.sim-input[type="number"] {
+    width: 60px;
+}
+.sim-input[type="number"]:hover {
+  border-color: lightskyblue;
+}
+.sim-input[type="number"]:active {
+  border-color: skyblue;
+}
+
+/*body {*/
+/*    background-color: darkslategray;*/
+/*    color: white;*/
+/*}*/

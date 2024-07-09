@@ -7,8 +7,7 @@ from typing import Iterator
 
 from .subshells import SubShells, SubShell
 
-
-ARROW_UP   = "\u21bF"
+ARROW_UP = "\u21bF"
 ARROW_DOWN = "\u21C2"
 ARROW_BOTH = "\u296E"
 
@@ -17,6 +16,7 @@ class Configuration:
     """
     The Configuration class is used to represent a configuration of a given electron configuration at a specific state.
     """
+
     def __init__(self, s: SubShell, p: SubShell, d: SubShell, f: SubShell, ms: float = None, ml: int = None):
         """
         The constructor of the Possibility class.
@@ -78,13 +78,26 @@ class Configuration:
         return (
                 ((
                          ((
-                          (self.__configuration[0].shell << 6)
-                          | self.__configuration[1].shell) << 10)
+                                  (self.__configuration[0].shell << 6)
+                                  | self.__configuration[1].shell) << 10)
                          | self.__configuration[2].shell) << 14)
                 | self.__configuration[3].shell)
 
     def __repr__(self) -> str:
         return f"<Configuration {self.ms=}, {self.ml=}>"
+
+    @staticmethod
+    def __shell_to_arrow(shell: SubShell, shell_index: int) -> str:
+        bits_to_arrow = {
+            0: "",
+            1: ARROW_DOWN,
+            2: ARROW_UP,
+            3: ARROW_BOTH,
+        }
+
+        shell_index *= 2
+
+        return bits_to_arrow[(shell.shell & (3 << shell_index)) >> shell_index]
 
     def __shell_to_arrows(self) -> list[str]:
         """
@@ -93,19 +106,13 @@ class Configuration:
         Returns:
             list[str]: The list of arrows.
         """
-        bits_to_arrow = {
-            0: "",
-            1: ARROW_DOWN,
-            2: ARROW_UP,
-            3: ARROW_BOTH,
-        }
 
-        return [bits_to_arrow[self.__configuration[0].shell]] + [
-            bits_to_arrow[(self.__configuration[1].shell & (3 << i)) >> i] for i in range(0, 6, 2)[::-1]
+        return [self.__shell_to_arrow(self.__configuration[0], 0)] + [
+            self.__shell_to_arrow(self.__configuration[0], i) for i in range(0, 3)[::-1]
         ] + [
-            bits_to_arrow[(self.__configuration[2].shell & (3 << i)) >> i] for i in range(0, 10, 2)[::-1]
+            self.__shell_to_arrow(self.__configuration[0], i) for i in range(0, 5)[::-1]
         ] + [
-            bits_to_arrow[(self.__configuration[3].shell & (3 << i)) >> i] for i in range(0, 14, 2)[::-1]
+            self.__shell_to_arrow(self.__configuration[0], i) for i in range(0, 7)[::-1]
         ]
 
     def to_list(self) -> list:
@@ -117,11 +124,76 @@ class Configuration:
         """
         return self.__shell_to_arrows() + [self.ml, self.ms]
 
+    @property
+    def s_arrow(self) -> str:
+        return self.__shell_to_arrow(self.__configuration[0], 0)
+
+    @property
+    def p_1_arrow(self) -> str:
+        return self.__shell_to_arrow(self.__configuration[1], 2)
+
+    @property
+    def p0_arrow(self) -> str:
+        return self.__shell_to_arrow(self.__configuration[1], 1)
+
+    @property
+    def p1_arrow(self) -> str:
+        return self.__shell_to_arrow(self.__configuration[1], 0)
+
+    @property
+    def d_2_arrow(self) -> str:
+        return self.__shell_to_arrow(self.__configuration[2], 4)
+
+    @property
+    def d_1_arrow(self) -> str:
+        return self.__shell_to_arrow(self.__configuration[2], 3)
+
+    @property
+    def d0_arrow(self) -> str:
+        return self.__shell_to_arrow(self.__configuration[2], 2)
+
+    @property
+    def d1_arrow(self) -> str:
+        return self.__shell_to_arrow(self.__configuration[2], 1)
+
+    @property
+    def d2_arrow(self) -> str:
+        return self.__shell_to_arrow(self.__configuration[2], 0)
+
+    @property
+    def f_3_arrow(self) -> str:
+        return self.__shell_to_arrow(self.__configuration[3], 6)
+
+    @property
+    def f_2_arrow(self) -> str:
+        return self.__shell_to_arrow(self.__configuration[3], 5)
+
+    @property
+    def f_1_arrow(self) -> str:
+        return self.__shell_to_arrow(self.__configuration[3], 4)
+
+    @property
+    def f0_arrow(self) -> str:
+        return self.__shell_to_arrow(self.__configuration[3], 3)
+
+    @property
+    def f1_arrow(self) -> str:
+        return self.__shell_to_arrow(self.__configuration[3], 2)
+
+    @property
+    def f2_arrow(self) -> str:
+        return self.__shell_to_arrow(self.__configuration[3], 1)
+
+    @property
+    def f3_arrow(self) -> str:
+        return self.__shell_to_arrow(self.__configuration[3], 0)
+
 
 class Configurations:
     """
     The Configurations class is used to represent all the possible configurations of a given electron configuration.
     """
+
     def __init__(self, s: int, p: int, d: int, f: int):
         """
         The constructor of the Possibility class.

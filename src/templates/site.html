@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block html_args %}
+    data-bs-theme="dark" id="html"
+{% endblock %}
+
+{% block title %}
+	Simulator for spectroscopic terms
+{% endblock %}
+
+{% block header %}
+    <header class="heading-text text-center p-3">
+    <h1>Sim4SpecTerms - A simulator for spectroscopic terms</h1>
+    </header>
+{% endblock %}
+
+{% block navbar %}
+    <nav id="navbar" class="navbar navbar navbar-expand-md p-2">
+    <form class="container-xl" method="get" id="simulator-form">
+        <a class="navbar-brand" href="{{ url_for('site') }}">Simulator for spectroscopic terms</a>
+
+        {{ form.hidden_tag() }}
+        <div class="input-group nav-item">
+            <span class="input-group-text sim-span bg-dark-subtle" id="s-input">{{ form.s.name }}</span>
+            {{ form.s(class="form-control sim-input", aria_describedby="s-input") }}
+
+            <span class="input-group-text sim-span bg-dark-subtle" id="p-input">{{ form.p.name }}</span>
+            {{ form.p(class="form-control sim-input", aria_describedby="p-input") }}
+
+            <span class="input-group-text sim-span bg-dark-subtle" id="d-input">{{ form.d.name }}</span>
+            {{ form.d(class="form-control sim-input", aria_describedby="d-input") }}
+
+            <span class="input-group-text sim-span bg-dark-subtle" id="f-input">{{ form.f.name }}</span>
+            {{ form.f(class="form-control sim-input", aria_describedby="f-input") }}
+
+            <button type="submit" class="btn btn-primary btn-outline-success text-white"
+                    id="simulate-button">Simulate</button>
+        </div>
+    </form>
+
+    </nav>
+{% endblock %}
+
+{% block content %}
+    <main id="content" class="bg-body p-2">
+        <div class="container-xl">
+        <div class="row">
+            <div class="col-lg-4 text-center">
+                <div class="container border bg-body-secondary">
+                    <h1>Possibilities</h1>
+                    <table class="table table-bordered bg-body-tertiary">
+                        <thead>
+                        <tr>
+                            <th scope="col">Orbital</th>
+                            <th scope="col">Possibilities</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <th scope="row">s</th>
+                            <td>{{ s_comb }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">p</th>
+                            <td>{{ p_comb }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">d</th>
+                            <td>{{ d_comb }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">f</th>
+                            <td>{{ f_comb }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Total</th>
+                            <td>{{ s_comb * p_comb * d_comb * f_comb }}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="container border bg-body-secondary">
+                    <h1>Terms</h1>
+                    <table class="table table-bordered bg-body-tertiary">
+                        <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">L</th>
+                            <th scope="col">S</th>
+                            <th scope="col">Count</th>
+                            <th scope="col">Spectroscopic term</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for i, term in terms %}
+                            <tr>
+                                <th scope="row">{{ i + 1 }}</th>
+                                <td>{{ term.l }}</td>
+                                <td>{{ term.s }}</td>
+                                <td>{{ term.count }}</td>
+                                {% autoescape off %}
+                                    <td>{{ term_formatter(term.sup, term.term_letter, term.sub) }}</td>
+                                {% endautoescape %}
+                            </tr>
+                        {% endfor %}
+
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-lg-8 container border text-center bg-body-secondary">
+                <h1>Configurations</h1>
+                <table class="table table-bordered bg-body-tertiary">
+                    <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">s</th>
+                        <th scope="col">p<sub>-1</sub></th>
+                        <th scope="col">p<sub>0</sub></th>
+                        <th scope="col">p<sub>1</sub></th>
+                        <th scope="col">d<sub>-2</sub></th>
+                        <th scope="col">d<sub>-1</sub></th>
+                        <th scope="col">d<sub>0</sub></th>
+                        <th scope="col">d<sub>1</sub></th>
+                        <th scope="col">d<sub>2</sub></th>
+                        <th scope="col">f<sub>-3</sub></th>
+                        <th scope="col">f<sub>-2</sub></th>
+                        <th scope="col">f<sub>-1</sub></th>
+                        <th scope="col">f<sub>0</sub></th>
+                        <th scope="col">f<sub>1</sub></th>
+                        <th scope="col">f<sub>2</sub></th>
+                        <th scope="col">f<sub>3</sub></th>
+                        <th scope="col">M<sub>&#x2113</sub></th>
+                        <th scope="col">M<sub>&#x1D460</sub></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for i, conf in configurations %}
+                    	<tr>
+                        <th scope="row">{{ i + 1 }}</th>
+                        <td>{{ conf.s_arrow }}</td>
+                        <td>{{ conf.p_1_arrow }}</td>
+                        <td>{{ conf.p0_arrow }}</td>
+                        <td>{{ conf.p1_arrow }}</td>
+                        <td>{{ conf.d_2_arrow }}</td>
+                        <td>{{ conf.d_1_arrow }}</td>
+                        <td>{{ conf.d0_arrow }}</td>
+                        <td>{{ conf.d1_arrow }}</td>
+                        <td>{{ conf.d2_arrow }}</td>
+                        <td>{{ conf.f_3_arrow }}</td>
+                        <td>{{ conf.f_2_arrow }}</td>
+                        <td>{{ conf.f_1_arrow }}</td>
+                        <td>{{ conf.f0_arrow }}</td>
+                        <td>{{ conf.f1_arrow }}</td>
+                        <td>{{ conf.f2_arrow }}</td>
+                        <td>{{ conf.f3_arrow }}</td>
+                        <td>{{ conf.ml }}</td>
+                        <td>{{ conf.ms }}</td>
+                        </tr>
+                    {% endfor %}
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+    </main>
+
+{% endblock %}
+
+{% block footer %}
+	<footer id="footer" class="card-footer container-lg footer text-center p-3 align-items-end">
+    <p>
+        This website was made and is maintained by a student.<br>
+        Please report any issues to the associated
+        <a href="https://github.com/201st-Luka/Sim4SpecTerms/issues" target="_blank">GitHub project issues page</a>
+        or join the
+        <a href="https://discord.gg/j2PAF9Wru8" target="_blank">Discord server</a>
+        to discuss the web application.
+    </p>
+    <p>
+        <a href="https://github.com/201st-Luka/Sim4SpecTerms" target="_blank" class="icon-link">
+            <img src="../static/github-mark-white.png" width="30">
+            Check out the source code on GitHub.
+        </a>
+    </p>
+    <p>
+        <a href="https://discord.gg/j2PAF9Wru8" target="_blank" class="icon-link">
+            <img src="../static/discord.png" width="30">
+            Contact on Discord.
+        </a>
+    </p>
+    </footer>
+{% endblock %}
+
+{% block styles %}
+	{{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+{% endblock %}
+
+{% block scripts %}
+	{{ super() }}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="{{ url_for('static', filename='js/simulator.js') }}"></script>
+{% endblock %}
+
