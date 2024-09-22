@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block html_args %}
-    data-bs-theme="dark" id="html"
+    data-bs-theme="light" id="html"
 {% endblock %}
 
 {% block title %}
@@ -33,7 +33,7 @@
             <span class="input-group-text sim-span bg-dark-subtle" id="f-input">{{ form.f.name }}</span>
             {{ form.f(class="form-control sim-input", aria_describedby="f-input") }}
 
-            <button type="submit" class="btn btn-primary btn-outline-success text-white"
+            <button onclick="submit()" class="btn btn-primary btn-outline-success text-white"
                     id="simulate-button">Simulate</button>
         </div>
     </form>
@@ -81,7 +81,7 @@
                 </div>
                 <div class="container border bg-body-secondary">
                     <h1>Terms</h1>
-                    <table class="table table-bordered bg-body-tertiary">
+                    <table class="table table-bordered bg-body-tertiary table-hover" id="terms-table">
                         <thead>
                         <tr>
                             <th scope="col">#</th>
@@ -91,10 +91,11 @@
                             <th scope="col">Spectroscopic term</th>
                         </tr>
                         </thead>
+
                         <tbody>
-                        {% for i, term in terms %}
+                        {% for term in terms %}
                             <tr>
-                                <th scope="row">{{ i + 1 }}</th>
+                                <th scope="row">{{ loop.index }}</th>
                                 <td>{{ term.l }}</td>
                                 <td>{{ term.s }}</td>
                                 <td>{{ term.count }}</td>
@@ -105,7 +106,6 @@
                         {% endfor %}
 
                         </tbody>
-
                     </table>
                 </div>
             </div>
@@ -137,9 +137,9 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for i, conf in configurations %}
+                    {% for conf in configurations %}
                     	<tr>
-                        <th scope="row">{{ i + 1 }}</th>
+                        <th scope="row">{{ loop.index }}</th>
                         <td>{{ conf.s_arrow }}</td>
                         <td>{{ conf.p_1_arrow }}</td>
                         <td>{{ conf.p0_arrow }}</td>
@@ -175,21 +175,13 @@
     <p>
         This website was made and is maintained by a student.<br>
         Please report any issues to the associated
-        <a href="https://github.com/201st-Luka/Sim4SpecTerms/issues" target="_blank">GitHub project issues page</a>
-        or join the
-        <a href="https://discord.gg/j2PAF9Wru8" target="_blank">Discord server</a>
-        to discuss the web application.
+        <a href="https://github.com/201st-Luka/Sim4SpecTerms/issues" target="_blank">GitHub project's issues page</a>
+        .
     </p>
     <p>
         <a href="https://github.com/201st-Luka/Sim4SpecTerms" target="_blank" class="icon-link">
-            <img src="../static/github-mark-white.png" width="30">
+            <img src="../static/github-mark-white.png" width="30" alt="0">
             Check out the source code on GitHub.
-        </a>
-    </p>
-    <p>
-        <a href="https://discord.gg/j2PAF9Wru8" target="_blank" class="icon-link">
-            <img src="../static/discord.png" width="30">
-            Contact on Discord.
         </a>
     </p>
     </footer>

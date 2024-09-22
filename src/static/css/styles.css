@@ -12,7 +12,6 @@
   border-color: skyblue;
 }
 
-/*body {*/
-/*    background-color: darkslategray;*/
-/*    color: white;*/
-/*}*/
+.filter-input tr:hover {
+    background: var(--bs-btn-hover-bg);
+}
