@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}
+    s{{ s }}p{{ p }}d{{ d }}f{{ f }} - Simulator for Spectroscopic terms
+{% endblock %}
+
+{% block navbar %}
+    <nav class="navbar navbar-expand-lg bg-primary navbar-dark">
+        <div class="container-md p-2">
+            <a class="navbar-brand" href="/">
+                <img src="{{ url_for("static", filename="assets/images/logo.png") }}" alt="" width="60px" height="60px">
+                <a class="navbar-brand">
+                    Simulator for<br>Spectroscopic Terms
+                </a>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/simple">Simple</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link disabled" href="/complex">Complex</a>
+                    </li>
+                </ul>
+
+                <form id="simulate-form" class="d-flex" role="form">
+                    <div class="input-group me-2">
+                        <span class="input-group-text" id="basic-addon1">s</span>
+                        <input name="s" value="{{ s }}" placeholder="{{ s }}" min="0" max="2" type="number"
+                               class="form-control" aria-label="s"/>
+                        <span class="input-group-text" id="basic-addon1">p</span>
+                        <input name="p" value="{{ p }}" placeholder="{{ p }}" min="0" max="6" type="number"
+                               class="form-control" aria-label="p"/>
+                        <span class="input-group-text" id="basic-addon1">d</span>
+                        <input name="d" value="{{ d }}" placeholder="{{ d }}" min="0" max="10" type="number"
+                               class="form-control" aria-label="d"/>
+                        <span class="input-group-text" id="basic-addon1">f</span>
+                        <input name="f" value="{{ f }}" placeholder="{{ f }}" min="0" max="14" type="number"
+                               class="form-control" aria-label="f"/>
+                    </div>
+                    <button id="simulate-button" class="btn btn-secondary" type="submit" disabled style="width: 200px">
+                        Simulate
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+{% endblock %}
+
+{% block content %}
+    <div class="container-md">
+        <div class="row p-2">
+            <div class="col p-2">
+                <div class="row align-content-center m-2">
+                    <table class="table table-bordered border-primary text-center">
+                        <thead>
+                        <tr>
+                            <th scope="col">Orbital</th>
+                            <th scope="col">Possibilities</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <th scope="row">s</th>
+                            <td>{{ s_comb }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">p</th>
+                            <td>{{ p_comb }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">d</th>
+                            <td>{{ d_comb }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">f</th>
+                            <td>{{ f_comb }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Total</th>
+                            <td>{{ s_comb * p_comb * d_comb * f_comb }}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row align-content-center m-2">
+                    <form id="filter-form" class="form-check" action="/simple">
+                        <input name="s" value="{{ s }}" type="hidden"/>
+                        <input name="p" value="{{ p }}" type="hidden"/>
+                        <input name="d" value="{{ d }}" type="hidden"/>
+                        <input name="f" value="{{ f }}" type="hidden"/>
+                        <table class="table table-bordered border-primary text-center">
+                            <thead>
+                            <tr>
+                                <th scope="col" colspan="5">Groups</th>
+                            </tr>
+                            <tr>
+                                <th scope="col">
+                                    <input class="form-check-input" type="checkbox" id="term-all" name="term"/>
+                                    <label class="form-check-label" for="term-all"></label>
+                                    L
+                                </th>
+                                <th scope="col">S</th>
+                                <th scope="col">Count</th>
+                                <th scope="col">Size</th>
+                                <th scope="col">Spectroscopic Term</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            {% for term in terms %}
+                                {% set term_string = "l{}_s{}".format(term.l, term.s) %}
+                                <tr>
+                                    <th scope="row">
+                                        <input class="form-check-input" type="checkbox" id="term-{{ term_string }}"
+                                               name="term" value="{{ term_string }}"
+                                                {% if term_string in selected_terms %}
+                                               checked
+                                                {% endif %} />
+                                        {{ term.l }}
+                                    </th>
+                                    <th scope="row">{{ term.s }}</th>
+                                    <td>{{ term.count }}</td>
+                                    <td>{{ term.size }}</td>
+                                    <td>
+                                        <label class="form-check-label" for="term-{{ term_string }}">
+                                            {% for term_sub in term.sub %}
+                                                <span style="white-space: nowrap;">
+                                                    <sup>{{ term.sup }}</sup>
+                                                    {{ term.term_letter }}
+                                                    <sub>
+                                                    {% if term_sub.is_integer() %}
+                                                        {{ term_sub | int }}
+                                                    {% else %}
+                                                        <sup>{{ (term_sub * 2) | int }}</sup>&frasl;<sub>2</sub>
+                                                    {% endif %}
+                                                    </sub>
+                                                    {% if not loop.last %}, {% endif %}
+                                                </span>
+                                            {% endfor %}
+                                        </label>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                        <button id="filter-button" class="btn btn-secondary" type="submit" disabled
+                                style="width: 200px">Filter
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="col p-2" style="min-width: 65%">
+                <div class="row align-content-center m-2">
+                    <table class="table table-bordered border-primary text-center">
+                        <thead>
+                        <tr>
+                            <th scope="col" colspan="19">Combinations</th>
+                        </tr>
+                        <tr>
+                            <th style="width: calc(100% / 19)" scope="col">s</th>
+                            <th style="width: calc(100% / 19)" scope="col">p<sub>-1</sub></th>
+                            <th style="width: calc(100% / 19)" scope="col">p<sub>0</sub></th>
+                            <th style="width: calc(100% / 19)" scope="col">p<sub>1</sub></th>
+                            <th style="width: calc(100% / 19)" scope="col">d<sub>-2</sub></th>
+                            <th style="width: calc(100% / 19)" scope="col">d<sub>-1</sub></th>
+                            <th style="width: calc(100% / 19)" scope="col">d<sub>0</sub></th>
+                            <th style="width: calc(100% / 19)" scope="col">d<sub>1</sub></th>
+                            <th style="width: calc(100% / 19)" scope="col">d<sub>2</sub></th>
+                            <th style="width: calc(100% / 19)" scope="col">f<sub>-3</sub></th>
+                            <th style="width: calc(100% / 19)" scope="col">f<sub>-2</sub></th>
+                            <th style="width: calc(100% / 19)" scope="col">f<sub>-1</sub></th>
+                            <th style="width: calc(100% / 19)" scope="col">f<sub>-0</sub></th>
+                            <th style="width: calc(100% / 19)" scope="col">f<sub>1</sub></th>
+                            <th style="width: calc(100% / 19)" scope="col">f<sub>2</sub></th>
+                            <th style="width: calc(100% / 19)" scope="col">f<sub>3</sub></th>
+                            <th style="width: calc(100% / 19)" scope="col">M<sub>ℓ</sub></th>
+                            <th style="width: calc(100% / 19)" scope="col">M<sub>𝑠</sub></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for config in configurations %}
+                            <tr>
+                                <td>{{ config.s_arrow }}</td>
+                                <td>{{ config.p_1_arrow }}</td>
+                                <td>{{ config.p0_arrow }}</td>
+                                <td>{{ config.p1_arrow }}</td>
+                                <td>{{ config.d_2_arrow }}</td>
+                                <td>{{ config.d_1_arrow }}</td>
+                                <td>{{ config.d0_arrow }}</td>
+                                <td>{{ config.d1_arrow }}</td>
+                                <td>{{ config.d2_arrow }}</td>
+                                <td>{{ config.f_3_arrow }}</td>
+                                <td>{{ config.f_2_arrow }}</td>
+                                <td>{{ config.f_1_arrow }}</td>
+                                <td>{{ config.f0_arrow }}</td>
+                                <td>{{ config.f1_arrow }}</td>
+                                <td>{{ config.f2_arrow }}</td>
+                                <td>{{ config.f3_arrow }}</td>
+                                <td>{{ config.ml }}</td>
+                                <td>{{ config.ms }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/simple.js') }}"></script>
+{% endblock %}

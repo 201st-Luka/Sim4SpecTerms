@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block orbitals_info %}
+    <strong>Orbitals:</strong> Explore possible electron configurations and quantum numbers.
+{% endblock %}
+
+{% block spectroscopic_table %}
+    <table class="table table-sm table-bordered">
+        <thead>
+            <tr>
+                <th>Group</th>
+                <th>L</th>
+                <th>S</th>
+                <th>Count</th>
+                <th>Spectroscopic Term</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in spectroscopic_data %}
+            <tr>
+                <td>{{ row.group }}</td>
+                <td>{{ row.L }}</td>
+                <td>{{ row.S }}</td>
+                <td>{{ row.count }}</td>
+                <td>{{ row.term }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+
+{% block data_table %}
+    <div style="overflow-x:auto; max-height:500px; overflow-y:auto;">
+    <table class="table table-sm table-striped data-table">
+        <thead>
+            <tr>
+                <th>Index</th>
+                <th>s</th>
+                <th>p<sub>-1</sub></th>
+                <th>p<sub>0</sub></th>
+                <th>p<sub>1</sub></th>
+                <th>d<sub>-2</sub></th>
+                <th>d<sub>-1</sub></th>
+                <th>d<sub>0</sub></th>
+                <th>d<sub>1</sub></th>
+                <th>d<sub>2</sub></th>
+                <th>f<sub>-3</sub></th>
+                <th>f<sub>-2</sub></th>
+                <th>f<sub>-1</sub></th>
+                <th>f<sub>0</sub></th>
+                <th>f<sub>1</sub></th>
+                <th>f<sub>2</sub></th>
+                <th>f<sub>3</sub></th>
+                <th>ml</th>
+                <th>ms</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in data_entries %}
+            <tr>
+                <td>{{ entry.index }}</td>
+                <td>{{ entry.s }}</td>
+                <td>{{ entry.p_neg1 }}</td>
+                <td>{{ entry.p_0 }}</td>
+                <td>{{ entry.p_1 }}</td>
+                <td>{{ entry.d_neg2 }}</td>
+                <td>{{ entry.d_neg1 }}</td>
+                <td>{{ entry.d_0 }}</td>
+                <td>{{ entry.d_1 }}</td>
+                <td>{{ entry.d_2 }}</td>
+                <td>{{ entry.f_neg3 }}</td>
+                <td>{{ entry.f_neg2 }}</td>
+                <td>{{ entry.f_neg1 }}</td>
+                <td>{{ entry.f_0 }}</td>
+                <td>{{ entry.f_1 }}</td>
+                <td>{{ entry.f_2 }}</td>
+                <td>{{ entry.f_3 }}</td>
+                <td>{{ entry.ml }}</td>
+                <td>{{ entry.ms }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+{% endblock %}

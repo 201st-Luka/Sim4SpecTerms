@@ -4,8 +4,8 @@ This module contains the Groups class, which is used to calculate the terms of a
 
 from functools import lru_cache
 
-from .configuration import Configurations
-from .utils import float_range, float_range_equal
+from simulator.configuration import Configurations
+from simulator.utils import float_range, float_range_equal
 
 
 @lru_cache(maxsize=100)
@@ -40,7 +40,10 @@ class Term:
     """
     The Term class is used to represent a term of a given group.
     """
-    def __init__(self, s: float, l: int, count: int = 1):
+
+    __slots__ = ("s", "l", "count", "size", "term_letter", "sup", "sub")
+
+    def __init__(self, s: float, l: int, size: int, count: int = 1):
         """
         The constructor of the Term class.
 
@@ -51,10 +54,15 @@ class Term:
             l (int):
                 The l value of the term.
 
+            size (int):
+                The number of configurations that make up this term.
+
             count (int):
-                The count of the term.
+                The number of times this term can be built from the configurations.
         """
         self.count = count
+        self.size = size
+
         self.s = s
         self.l = l
 
@@ -62,6 +70,19 @@ class Term:
 
     @staticmethod
     def __build_term(s: float, l: int) -> tuple[str, int, list[float]]:
+        """
+        Construct the term letter, the superscript and the subscripts of the term.
+
+        Args:
+            s (float):
+                The s value of the term.
+            l (int):
+                The l value of the term.
+
+        Returns:
+            tuple[str, int, list[float]]:
+                The term letter, the superscript and the subscripts of the term.
+        """
         # dictionary to translate the l value to the term letter
         ml_matcher = {
             0: "S",
@@ -106,6 +127,8 @@ class Groups:
     The Groups class is used to calculate the terms of a given configuration.
     """
 
+    __slots__ = ("__configurations", "__max_ms", "__max_ml", "__terms")
+
     def __init__(self, configurations: Configurations):
         """
         The constructor of the Groups class.
@@ -139,7 +162,14 @@ class Groups:
         for ms in ms_values[::-1]:
             for ml in range(self.__max_ml, -1, -1):
                 if (count := groups[ml][int(ms)]) > 0:
-                    terms.append(Term(ms, ml, count))
+                    terms.append(
+                        Term(
+                            ms,
+                            ml,
+                            self.__configurations.compute_term_size(ml, ms),
+                            count=count,
+                        )
+                    )
                     # decreasing the counts of the other terms of this group
                     for ms_ in float_range(ms + 1):
                         for ml_ in range(ml + 1):

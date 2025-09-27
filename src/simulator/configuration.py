@@ -3,9 +3,9 @@ This module contains the Configuration and Configurations classes.
 """
 
 import math
-from typing import Iterator
+from typing import Iterator, ClassVar
 
-from .subshells import SubShells, SubShell
+from simulator.subshells import SubShells, SubShell
 
 ARROW_UP = "\u21bF"
 ARROW_DOWN = "\u21C2"
@@ -16,6 +16,8 @@ class Configuration:
     """
     The Configuration class is used to represent a configuration of a given electron configuration at a specific state.
     """
+
+    __slots__ = ("__configuration", "ms", "ml")
 
     def __init__(self, s: SubShell, p: SubShell, d: SubShell, f: SubShell, ms: float = None, ml: int = None):
         """
@@ -106,7 +108,6 @@ class Configuration:
         Returns:
             list[str]: The list of arrows.
         """
-
         return [self.__shell_to_arrow(self.__configuration[0], 0)] + [
             self.__shell_to_arrow(self.__configuration[0], i) for i in range(0, 3)[::-1]
         ] + [
@@ -194,10 +195,12 @@ class Configurations:
     The Configurations class is used to represent all the possible configurations of a given electron configuration.
     """
 
-    __max_possible_ms = 8
+    __MAX_POSSIBLE_MS: ClassVar[int] = 8
     """int: The maximum possible value of the ms value."""
-    __max_possible_ml = 20
+    __MAX_POSSIBLE_ML: ClassVar[int] = 20
     """int: The maximum possible value of the ml value."""
+
+    __slots__ = ("__electrons", "__combinations_count", "__combinations", "__index")
 
     def __init__(self, s: int, p: int, d: int, f: int):
         """
@@ -236,8 +239,8 @@ class Configurations:
         """
         index = [
             [
-                [] for _ in range(-self.__max_possible_ms, self.__max_possible_ms + 1)
-            ] for _ in range(-self.__max_possible_ml, self.__max_possible_ml + 1)
+                [] for _ in range(-self.__MAX_POSSIBLE_MS, self.__MAX_POSSIBLE_MS + 1)
+            ] for _ in range(-self.__MAX_POSSIBLE_ML, self.__MAX_POSSIBLE_ML + 1)
         ]
 
         for i, config in enumerate(self):
@@ -309,13 +312,13 @@ class Configurations:
         """
         return self.__electrons
 
-    def filter(self, terms: list['Term'] = None, start_index: int = 0, length: int = None):
+    def filter(self, terms: list[tuple[int, float]] = None, start_index: int = 0, length: int = None) -> list[Configuration]:
         """
         Filter the configurations by the ms and ml values.
 
         Args:
-            terms (list[Term]):
-                The list of terms that is should be filtered.
+            terms (list[tuple[int, float]]):
+                The list of terms given by L and S value that should be filtered.
 
             start_index (int):
                 The start index of the configurations.
@@ -329,20 +332,55 @@ class Configurations:
         if terms:
             filtered_configurations = set()
             for term in terms:
-                for l in range(-term.l, term.l + 1):
-                    for s in range(int(-term.s), int(term.s) + 1):
-                        filtered_configurations.update(self.__index[l][s])
-            # filtered_configurations.update(self.__index[term.l][int(term.s)])
-            # filtered_configurations.update(self.__index[term.l][int(-term.s)])
-            # filtered_configurations.update(self.__index[-term.l][int(-term.s)])
-            # filtered_configurations.update(self.__index[-term.l][int(term.s)])
+                filtered_configurations.update(self.extract_term_configuration_indexes(*term))
 
             sorted_filtered_configurations = sorted(filtered_configurations)
-            end_index = (start_index + length) if length else len(sorted_filtered_configurations)
+            end_index = (start_index + length) if length else len(filtered_configurations)
 
             return [self[i] for i in sorted_filtered_configurations[start_index:end_index]]
-        else:
-            return self[start_index:start_index + length or len(self)]
+
+        return self[start_index:start_index + length or len(self)]
+
+    def compute_term_size(self, l_value: int, s_value: float) -> int:
+        """
+        Compute the size of a specific term.
+
+        Args:
+            l_value (int):
+                The L value of the term.
+            s_value (float):
+                The S value of the term.
+
+        Returns:
+            int:
+                The size of the specific term.
+        """
+        return sum(
+            len(self.__index[l][s])
+            for l in range(-l_value, l_value + 1)
+            for s in range(int(-s_value), int(s_value) + 1)
+        )
+
+    def extract_term_configuration_indexes(self, l_value: int, s_value: float) -> set[int]:
+        """
+        Extract the configuration array indexes for a specific term.
+
+        Args:
+            l_value (int):
+                The L value of the term.
+            s_value (float):
+                The S value of the term.
+
+        Returns:
+            set[int]:
+                The array indexes of the configurations that belong to the specific term.
+        """
+        return {
+            config_index
+            for l in range(-l_value, l_value + 1)
+            for s in range(int(-s_value), int(s_value) + 1)
+            for config_index in self.__index[l][s]
+        }
 
     def max_ms(self) -> float:
         """
@@ -351,7 +389,7 @@ class Configurations:
         Returns:
             float: The maximum ms value.
         """
-        for i in range(Configurations.__max_possible_ms, -1, -1):
+        for i in range(Configurations.__MAX_POSSIBLE_MS, -1, -1):
             if self.__index[i]:
                 if sum(self.__electrons) % 2 == 0:
                     return i
@@ -366,7 +404,7 @@ class Configurations:
         Returns:
             int: The maximum ml value.
         """
-        for i in range(Configurations.__max_possible_ml, -1, -1):
+        for i in range(Configurations.__MAX_POSSIBLE_ML, -1, -1):
             if self.__index[i]:
                 return i
         return 0
@@ -383,9 +421,25 @@ class Configurations:
         """
         return [
             [
-                len(index) for index in indexes[:Configurations.__max_possible_ms + 1]
-            ] for indexes in self.__index[:Configurations.__max_possible_ml + 1]
+                len(index) for index in indexes[:Configurations.__MAX_POSSIBLE_MS + 1]
+            ] for indexes in self.__index[:Configurations.__MAX_POSSIBLE_ML + 1]
         ]
+
+    def get_ml_ms_count(self, ml: int, ms: float) -> int:
+        """
+        Get the count of configurations for a specific ml and ms value.
+
+        Args:
+            ml (int):
+                The ml value.
+            ms (float):
+                The ms value.
+
+        Returns:
+            int:
+                The count of configurations for the specific ml and ms value.
+        """
+        return len(self.__index[ml][int(ms)])
 
     def __getitem__(self, index: int | slice) -> Configuration | list[Configuration]:
         if isinstance(index, slice):
